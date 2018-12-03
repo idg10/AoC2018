@@ -34,7 +34,81 @@ namespace Day02
 
             int partOneResult = CalculateChecksum(InputReader.EnumerateLines(typeof(Program)));
             Console.WriteLine("Part 1: " + partOneResult);
+
+            string[] part2TestInput =
+            {
+                "abcde",
+                "fghij",
+                "klmno",
+                "pqrst",
+                "fguij",
+                "axcye",
+                "wvxyz"
+            };
+
+            Debug.Assert(SolvePart2(part2TestInput) == "fgij");
+
+            string part2Result = SolvePart2(InputReader.EnumerateLines(typeof(Program)));
+            Console.WriteLine("Part 2: " + part2Result);
         }
+
+        /// <summary>
+        /// Find the first id which has only one character different from an id already seen.
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns>
+        /// The first id which has only one character different from an id already seen.
+        /// </returns>
+        /// <remarks>
+        /// This works by producing 'partial ids', by which we mean the id with one character
+        /// removed. For each id, we produce every possible partial id (by first producing a string
+        /// which is the id with the first letter missing, then one with the second letter missing,
+        /// and so on). We add each of these to a set, and if we produce a partial id that is
+        /// already in the set, we know that the id from which it came differs by only one letter
+        /// from one we've seen before.
+        /// </remarks>
+        private static string SolvePart2(IEnumerable<string> ids) => ids
+            .Scan(MakeFirstPartialIds(), AccumulatePartialIds)
+            .First(x => x.isRepeat).id;
+
+        /// <summary>
+        /// Accumulator function which, for each id, adds all its partial ids to a set,
+        /// and indicates whether any partial id has been seen before, and produces that partial id,
+        /// or, if none of the id's partial ids have been seen before, it produces the id. A
+        /// id is the id with one character removed.
+        /// </summary>
+        /// <param name="acc">The accumulator.</param>
+        /// <param name="id">The id.</param>
+        /// <returns>
+        /// The accumulated dictionary.
+        /// </returns>
+        private static (IImmutableSet<string> partialIdsSeen, string id, bool isRepeat) AccumulatePartialIds(
+            (IImmutableSet<string> partialIdsSeen, string id, bool isRepeat) acc,
+            string id)
+        {
+            var partialIdsSeen = acc.partialIdsSeen;
+            IEnumerable<string> partialIds = Enumerable.Range(0, id.Length - 1)
+                .Select(i => id.Substring(0, i) + id.Substring(i + 1))
+                .Distinct();
+
+            bool isRepeat = false;
+            string idToReturn = id;
+            foreach (string partialId in partialIds)
+            {
+                var updatedPartialIdsSeen = partialIdsSeen.Add(partialId);
+                if (partialIdsSeen == updatedPartialIdsSeen)
+                {
+                    isRepeat = true;
+                    idToReturn = partialId;
+                }
+                partialIdsSeen = updatedPartialIdsSeen;
+            }
+
+            return (partialIdsSeen, idToReturn, isRepeat);
+        }
+
+        private static (IImmutableSet<string> partialIdsSeen, string id, bool isRepeat) MakeFirstPartialIds() =>
+            (ImmutableHashSet<string>.Empty, null, false);
 
         /// <summary>
         /// Calculate the part 1 'checksum', in which for each input id, we count the number of
