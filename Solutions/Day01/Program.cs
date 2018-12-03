@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using TextHandling;
+using Common;
 
 namespace Day01
 {
@@ -12,7 +12,7 @@ namespace Day01
     /// </summary>
     internal class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
             // The challenge instructions first give us some examples of how frequency adjustments
             // are to be processed, so verify that we get the same results.
@@ -66,7 +66,7 @@ namespace Day01
         /// functions that use them, like this one.
         /// </para>
         /// </remarks>
-        static int UpdateFrequency(int current, int change) => current + change;
+        private static int UpdateFrequency(int current, int change) => current + change;
 
         /// <summary>
         /// Accumulate all of the frequency adjustments into a single result.
@@ -95,7 +95,7 @@ namespace Day01
         /// executing the logic in <see cref="UpdateFrequency(int, int)"/>.
         /// </para>
         /// </remarks>
-        static int ApplyFrequencyAdjustments(IEnumerable<int> changes) =>
+        private static int ApplyFrequencyAdjustments(IEnumerable<int> changes) =>
             changes.Aggregate(UpdateFrequency);
 
         /// <summary>
@@ -108,8 +108,7 @@ namespace Day01
         /// <returns>
         /// The value of the integer.
         /// </returns>
-        static int ParseInput(string line) => int.Parse(line);
-
+        private static int ParseInput(string line) => int.Parse(line);
 
         /// <summary>
         /// Finds the first calculated frequency value that is a repeat of an earlier frequency.
@@ -123,8 +122,9 @@ namespace Day01
         /// first result that shows up twice.
         /// </para>
         /// </remarks>
-        static int FindFirstRepeatedFrequency(IEnumerable<int> values) =>
-            FindFirstRepeatedValue(GetAdjustedFrequenciesWithRepeatingInput(values));
+        private static int FindFirstRepeatedFrequency(IEnumerable<int> values) =>
+            GetAdjustedFrequenciesWithRepeatingInput(values)
+            .FindFirstRepeatedValue();
 
         /// <summary>
         /// Produces a sequence in which each value represents a frequency, starting with the
@@ -137,58 +137,8 @@ namespace Day01
         /// <returns>
         /// Every frequency setting the device goes through, in turn.
         /// </returns>
-        static IEnumerable<int> GetAdjustedFrequenciesWithRepeatingInput(IEnumerable<int> changes) =>
+        private static IEnumerable<int> GetAdjustedFrequenciesWithRepeatingInput(IEnumerable<int> changes) =>
             EnumerableEx.Return(0)
             .Concat(changes.Repeat().Scan(0, UpdateFrequency));
-
-        /// <summary>
-        /// Returns the first element in a list that is a repeated element (i.e., the first element
-        /// that we see for a second time).
-        /// </summary>
-        /// <param name="values"></param>
-        /// <returns>The first element that we see a second time.</returns>
-        /// <remarks>
-        /// <para>
-        /// The obvious way to do this would be to write a <c>foreach</c> loop over the input, and
-        /// to keep track of what we've seen so far, returning the first item that's not new. But
-        /// why do the obvious thing?
-        /// </para>
-        /// <para>
-        /// Instead, to make life 'fun' I've decided to write this in a pure functional way. We're
-        /// using the <c>Scan</c> operator to run the <see cref="IsNew((IImmutableSet{int} seen, bool lastWasNew, int value), int)"/>
-        /// method over each item in turn, accumulating results as we go, and producing a sequence
-        /// with each accumulated result in turn. We use this accumulator to store the items seen
-        /// so far. Where it gets a little messy is that we also need to be able to see whether the
-        /// accumulation step found that the item was one it has seen before. And when we do detect
-        /// that, we also need to know what the result is. So our accumulator has to include three
-        /// things: the accumulated information (what have we already seen), a flag indicating
-        /// whether the most recent value was new, and the most recent value. This is rather
-        /// messier than the simpler <c>foreach</c> loop would have been, but sometimes pure
-        /// functional code is like that.
-        /// </para>
-        /// </remarks>
-        static T FindFirstRepeatedValue<T>(IEnumerable<T> values) => values
-            .Scan(MakeIsNewStart<T>(), IsNew)
-            .First(item => !item.lastWasNew).value;
-
-        /// <summary>
-        /// The accumulation step for <see cref="FindFirstRepeatedValue{T}(IEnumerable{T})"/>.
-        /// </summary>
-        /// <typeparam name="T">The sequence element type.</typeparam>
-        /// <param name="acc">The previous accumulated value.</param>
-        /// <param name="value">The new element.</param>
-        /// <returns>The new accumulated value.</returns>
-        static (IImmutableSet<T> seen, bool lastWasNew, T value) IsNew<T>((IImmutableSet<T> seen, bool lastWasNew, T value) acc, T value)
-        {
-            IImmutableSet<T> newSeen = acc.seen.Add(value);
-            return (newSeen, acc.seen != newSeen, value);
-        }
-
-        /// <summary>
-        /// Makes a suitable initial accumulator value for <see cref="IsNew{T}((IImmutableSet{T} seen, bool lastWasNew, T value), T)"/>.
-        /// </summary>
-        /// <typeparam name="T">Element type.</typeparam>
-        /// <returns>An empty accumulator.</returns>
-        static (IImmutableSet<T> seen, bool lastWasNew, T value) MakeIsNewStart<T>() => (ImmutableHashSet<T>.Empty, false, default(T));
     }
 }
