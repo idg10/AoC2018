@@ -45,11 +45,41 @@ namespace Day03
             PrintState(state);
 
             Debug.Assert(CountOverlappingCells(state) == 4);
+            Debug.Assert(FindNonOverlappingClaim(state) == 3);
+
+            IImmutableDictionary<(int x, int y), IImmutableSet<int>> fabricClaims = InputReader
+                .ParseLines(typeof(Program), lineParser)
+                .Aggregate(GetEmptyState<int>(), AddRectangle);
 
             int part1Result = CountOverlappingCells(
-                InputReader.ParseLines(typeof(Program), lineParser)
-                .Aggregate(GetEmptyState<int>(), AddRectangle));
+                fabricClaims);
             Console.WriteLine("Part 1: " + part1Result);
+
+            int part2Result = FindNonOverlappingClaim(fabricClaims);
+            Console.WriteLine("Part 2: " + part2Result);
+        }
+
+        /// <summary>
+        /// Finds the only claim that does not overlap with any other claims.
+        /// </summary>
+        /// <param name="fabricClaims">The claims.</param>
+        /// <returns>The non-overlapping claim</returns>
+        /// <remarks>
+        /// This requires that there be exactly one non-overlapping claim.
+        /// </remarks>
+        private static int FindNonOverlappingClaim(IImmutableDictionary<(int x, int y), IImmutableSet<int>> fabricClaims)
+        {
+            ImmutableDictionary<int, int> x = fabricClaims
+                .Aggregate(
+                    ImmutableDictionary<int, int>.Empty,
+                    (s1, kv) =>
+                        kv.Value.Aggregate(
+                            s1,
+                            (s2, claim) => s2.TryGetValue(claim, out int maxCellShareForClaim)
+                                ? (kv.Value.Count < maxCellShareForClaim ? s2 : s2.SetItem(claim, kv.Value.Count))
+                                : s2.Add(claim, kv.Value.Count)));
+
+            return x.Single(kv => kv.Value == 1).Key;
         }
 
         /// <summary>
