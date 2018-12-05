@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+
 using Common;
+
+using LanguageExt.Parsec;
+
+using static Common.Parsers;
 
 namespace Day01
 {
@@ -28,8 +32,7 @@ namespace Day01
             Debug.Assert(ApplyFrequencyAdjustments(new[] { -1, -2, -3 }) == -6);
 
             IEnumerable<int> input = InputReader
-                .EnumerateLines(typeof(Program))
-                .Select(ParseInput);
+                .ParseLines(typeof(Program), InputParser());
 
             Console.WriteLine("Day 1: " + ApplyFrequencyAdjustments(input));
 
@@ -99,16 +102,16 @@ namespace Day01
             changes.Aggregate(UpdateFrequency);
 
         /// <summary>
-        /// Parse one line of input into a form that our code can process.
+        /// Creates a parser for converting one line of input into a form that our code can process.
         /// </summary>
-        /// <param name="line">
-        /// The line of input. In this puzzle, it's an integer expressed as a sign (+ or -)
-        /// and then the value as a decimal.
-        /// </param>
         /// <returns>
         /// The value of the integer.
         /// </returns>
-        private static int ParseInput(string line) => int.Parse(line);
+        /// <remarks>
+        /// In this puzzle, each line is an integer expressed as a sign (+ or -) and then the value
+        /// as a decimal. The normal 32-bit integer parser works fine for this.
+        /// </remarks>
+        private static Parser<int> InputParser() => pInt32;
 
         /// <summary>
         /// Finds the first calculated frequency value that is a repeat of an earlier frequency.
@@ -138,7 +141,6 @@ namespace Day01
         /// Every frequency setting the device goes through, in turn.
         /// </returns>
         private static IEnumerable<int> GetAdjustedFrequenciesWithRepeatingInput(IEnumerable<int> changes) =>
-            EnumerableEx.Return(0)
-            .Concat(changes.Repeat().Scan(0, UpdateFrequency));
+            changes.Repeat().Scan(0, UpdateFrequency);
     }
 }

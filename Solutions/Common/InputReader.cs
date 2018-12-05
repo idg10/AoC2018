@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using LanguageExt.Parsec;
 
 namespace Common
 {
@@ -21,6 +22,20 @@ namespace Common
                         yield return line;
                     }
                 }
+            }
+        }
+
+        public static IEnumerable<T> ParseLines<T>(
+            Type typeInContainingAssembly,
+            Parser<T> p,
+            string inputName = "Idg10Input.txt")
+        {
+            int lineNumber = 1;
+            foreach (string line in EnumerateLines(typeInContainingAssembly, inputName))
+            {
+                yield return Parsers.ProcessLine(p, line, lineNumber);
+
+                lineNumber++;
             }
         }
     }

@@ -70,7 +70,7 @@ namespace Common
         /// </summary>
         /// <typeparam name="T">Element type.</typeparam>
         /// <returns>An empty accumulator.</returns>
-        private static (IImmutableSet<T> seen, bool lastWasNew, T value) MakeIsNewStart<T>() => (ImmutableHashSet<T>.Empty, false, default(T));
+        private static (IImmutableSet<T> seen, bool lastWasNew, T value) MakeIsNewStart<T>() => (ImmutableHashSet<T>.Empty, true, default(T));
 
         /// <summary>
         /// The accumulation step for <see cref="FindFirstRepeatedValue{T}(IEnumerable{T})"/>.
