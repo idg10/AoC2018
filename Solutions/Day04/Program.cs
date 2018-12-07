@@ -78,14 +78,13 @@ namespace Day04
 
             Console.WriteLine($"Part 1 result: {mostAsleepGuardId * timeMostAsleep}");
 
-            var mostSleptDuring = result
+            (int guardWithMostFrequentSleepSlot, KeyValuePair<int, int> minuteAndSleeps) = result
                 .GuardSleepSlots
                 .Select(s => (guardId: s.Key, minuteAndSleeps: s.Value.OrderBy(timeAndSleeps => timeAndSleeps.Value).Last()))
                 .OrderBy(x => x.minuteAndSleeps.Value)
                 .Last();
-            int guardWithMostFrequentSleepSlot = mostSleptDuring.guardId;
-            int mostFrequentSleepSlot = mostSleptDuring.minuteAndSleeps.Key;
-            int sleepsDuringMostFrequentSlot = mostSleptDuring.minuteAndSleeps.Value;
+            int mostFrequentSleepSlot = minuteAndSleeps.Key;
+            int sleepsDuringMostFrequentSlot = minuteAndSleeps.Value;
             Console.WriteLine($"Guard {guardWithMostFrequentSleepSlot} slept for {sleepsDuringMostFrequentSlot} at {mostFrequentSleepSlot}");
             Console.WriteLine($"Part 2 result: {guardWithMostFrequentSleepSlot * mostFrequentSleepSlot}");
         }
