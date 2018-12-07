@@ -53,14 +53,14 @@ namespace Day04
                 from n in recordParser
                 select (dateTime, n);
 
-            Console.WriteLine("Part 1 test");
-            Part1(testInput.Select(text => ProcessLine(lineParser, text)));
+            Console.WriteLine("Test");
+            Solve(testInput.Select(text => ProcessLine(lineParser, text)));
 
-            Console.WriteLine("Part 1 real");
-            Part1(InputReader.ParseLines(typeof(Program), lineParser));
+            Console.WriteLine("Real");
+            Solve(InputReader.ParseLines(typeof(Program), lineParser));
         }
 
-        private static void Part1(IEnumerable<(DateTime dateTime, Action<INotifications> notifier)> items)
+        private static void Solve(IEnumerable<(DateTime dateTime, Action<INotifications> notifier)> items)
         {
             State result = items
                 .OrderBy(l => l.dateTime)
@@ -73,12 +73,21 @@ namespace Day04
             int mostAsleepGuardId = mostAsleep.Key;
             Console.WriteLine($"Most asleep guard: {mostAsleepGuardId}");
 
-            //KeyValuePair<int, int> timeMostAsleepDetails = mostAsleep.Value.OrderBy(kv => kv.Value).Last();
-            //int timeMostAsleep = timeMostAsleepDetails.Key;
             int timeMostAsleep = mostAsleep.Value.OrderBy(kv => kv.Value).Last().Key;
             Console.WriteLine($"Time most asleep: {timeMostAsleep}");
 
-            Console.WriteLine($"Result: {mostAsleepGuardId * timeMostAsleep}");
+            Console.WriteLine($"Part 1 result: {mostAsleepGuardId * timeMostAsleep}");
+
+            var mostSleptDuring = result
+                .GuardSleepSlots
+                .Select(s => (guardId: s.Key, minuteAndSleeps: s.Value.OrderBy(timeAndSleeps => timeAndSleeps.Value).Last()))
+                .OrderBy(x => x.minuteAndSleeps.Value)
+                .Last();
+            int guardWithMostFrequentSleepSlot = mostSleptDuring.guardId;
+            int mostFrequentSleepSlot = mostSleptDuring.minuteAndSleeps.Key;
+            int sleepsDuringMostFrequentSlot = mostSleptDuring.minuteAndSleeps.Value;
+            Console.WriteLine($"Guard {guardWithMostFrequentSleepSlot} slept for {sleepsDuringMostFrequentSlot} at {mostFrequentSleepSlot}");
+            Console.WriteLine($"Part 2 result: {guardWithMostFrequentSleepSlot * mostFrequentSleepSlot}");
         }
 
         private static State ProcessNotification(
