@@ -20,12 +20,27 @@ namespace Common
         /// <summary>
         /// Parse a comma-separated pair of integers.
         /// </summary>
-        public static readonly Parser<(int x, int y)> pInt32CommaInt32 = sep2By(pInt32, ch(','));
+        public static readonly Parser<(int x, int y)> pInt32CommaInt32 = Sep2By(pInt32, ch(','));
+
+        /// <summary>
+        /// Parse a date/time of the form [1518-11-01 00:00].
+        /// </summary>
+        public static readonly Parser<DateTime> pDateTime =
+            from year in pInt32
+            from d1 in ch('-')
+            from month in pInt32
+            from d2 in ch('-')
+            from day in pInt32
+            from s1 in spaces
+            from hours in pInt32
+            from c1 in ch(':')
+            from mins in pInt32
+            select new DateTime(year, month, day, hours, mins, 0);
 
         /// <summary>
         /// Parse an 'x'-separater pair of integers.
         /// </summary>
-        public static readonly Parser<(int w, int h)> pInt32By32Int = sep2By(pInt32, ch('x'));
+        public static readonly Parser<(int w, int h)> pInt32ByInt32 = Sep2By(pInt32, ch('x'));
 
         /// <summary>
         /// Creates a parser that parses two values of the same type, with a separator between them.
@@ -35,7 +50,7 @@ namespace Common
         /// <param name="p">The value parser.</param>
         /// <param name="sep">The separator parser.</param>
         /// <returns>The pair of parsed values.</returns>
-        public static Parser<(T, T)> sep2By<S, T>(Parser<T> p, Parser<S> sep) =>
+        public static Parser<(T, T)> Sep2By<S, T>(Parser<T> p, Parser<S> sep) =>
             from x in p
             from _ in sep
             from y in p
