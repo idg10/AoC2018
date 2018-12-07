@@ -12,12 +12,36 @@ namespace Day05
         {
             string input = InputReader.EnumerateLines(typeof(Program)).Single();
             Console.WriteLine("Part 1: " + Part1(input));
+            Console.WriteLine("Part 2: " + Part2(input));
         }
 
         public static int Part1(string input)
         {
             string result = ProcessAllReactions(input).Last();
             return result.Length;
+        }
+
+        public static int Part2(string input)
+        {
+            List<char> unitTypes = input.Select(char.ToLowerInvariant).Distinct().ToList();
+            int min = input.Length;
+            foreach (char unitToRemove in unitTypes)
+            {
+                Console.WriteLine("Removing " + unitToRemove);
+                string modifiedInput = input
+                    .Replace(unitToRemove.ToString(), "")
+                    .Replace(char.ToUpperInvariant(unitToRemove).ToString(), "");
+
+                int reactedLength = Part1(modifiedInput);
+                Console.WriteLine("Length: " + reactedLength);
+                if (reactedLength < min)
+                {
+                    min = reactedLength;
+                    Console.WriteLine("New minimum!");
+                }
+            }
+
+            return min;
         }
 
         private static bool Reacts(char a, char b) => a != b && char.ToLowerInvariant(a) == char.ToLowerInvariant(b);

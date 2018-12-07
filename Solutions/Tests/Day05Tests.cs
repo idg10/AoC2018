@@ -55,5 +55,11 @@ namespace Tests
         {
             Assert.AreEqual(10, Program.Part1("dabAcCaCBAcCcaDA"));
         }
+
+        [TestMethod]
+        public void Part2ExampleResult()
+        {
+            Assert.AreEqual(4, Program.Part2("dabAcCaCBAcCcaDA"));
+        }
     }
 }
