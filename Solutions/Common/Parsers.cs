@@ -20,7 +20,7 @@ namespace Common
         /// <summary>
         /// Parse a comma-separated pair of integers.
         /// </summary>
-        public static readonly Parser<(int x, int y)> pInt32CommaInt32 = Sep2By(pInt32, ch(','));
+        public static readonly Parser<(int x, int y)> pInt32CommaInt32 = Sep2By(pInt32, Trim(ch(',')));
 
         /// <summary>
         /// Parse a date/time of the form [1518-11-01 00:00].
@@ -36,6 +36,28 @@ namespace Common
             from c1 in ch(':')
             from mins in pInt32
             select new DateTime(year, month, day, hours, mins, 0);
+
+        /// <summary>
+        /// Parse content optionally surrounded by other ignorable content (e.g. spaces).
+        /// </summary>
+        /// <typeparam name="T">The type returned by the parser whose results are required.</typeparam>
+        /// <typeparam name="TTrim">The type returned by the parser whose results are to be trimmed.</typeparam>
+        /// <param name="p">The parser of interest.</param>
+        /// <param name="pTrim">Parser for the content to be trimmed.</param>
+        /// <returns>The combined parser.</returns>
+        public static Parser<T> Trim<T, TTrim>(Parser<T> p, Parser<TTrim> pTrim) =>
+            from _ in pTrim
+            from v in p
+            from __ in pTrim
+            select v;
+
+        /// <summary>
+        /// Parse content optionally surrounded by spaces
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static Parser<T> Trim<T>(Parser<T> p) => Trim(p, spaces);
 
         /// <summary>
         /// Parse an 'x'-separater pair of integers.

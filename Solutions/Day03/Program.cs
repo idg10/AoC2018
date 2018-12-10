@@ -14,33 +14,37 @@ using static LanguageExt.Parsec.Prim;
 
 namespace Day03
 {
-    internal static class Program
+    public static class Program
     {
+        // Parse lines of this form:
+        //  #1 @ 1,3: 4x4
+        private static Parser<(int id, int x, int y, int w, int h)> lineParser =
+            from id in between(ch('#'), spaces, pInt32)
+            from _ in ch('@')
+            from p in between(spaces, ch(':'), pInt32CommaInt32)
+            from s3 in spaces
+            from s in pInt32ByInt32
+            select (id: id, x: p.x, y: p.y, w: s.w, h: s.h);
+
+        private static Func<string, (int id, int x, int y, int w, int h)> parseLine = LineProcessor(lineParser);
+
+
+        public static (int id, int x, int y, int w, int h)[] ExampleLines { get; } = new[]
+        {
+            parseLine("#1 @ 1,3: 4x4"),
+            parseLine("#2 @ 3,1: 4x4"),
+            parseLine("#3 @ 5,5: 2x2")
+        };
+
         private static void Main()
         {
-            // Parse lines of this form:
-            //  #1 @ 1,3: 4x4
-            Parser<(int id, int x, int y, int w, int h)> lineParser =
-                from id in between(ch('#'), spaces, pInt32)
-                from _ in ch('@')
-                from p in between(spaces, ch(':'), pInt32CommaInt32)
-                from s3 in spaces
-                from s in pInt32ByInt32
-                select (id: id, x: p.x, y: p.y, w: s.w, h: s.h);
-
-            Func<string, (int id, int x, int y, int w, int h)> parseLine = LineProcessor(lineParser);
-
-            var r = parseLine("#1 @ 1,3: 4x4");
-            var r2 = parseLine("#2 @ 3,1: 4x4");
-            var r3 = parseLine("#3 @ 5,5: 2x2");
-
-            var state = AddRectangle(GetEmptyState<int>(), r);
+            var state = AddRectangle(GetEmptyState<int>(), ExampleLines[0]);
             PrintState(state);
             Console.WriteLine();
-            state = AddRectangle(state, r2);
+            state = AddRectangle(state, ExampleLines[1]);
             PrintState(state);
             Console.WriteLine();
-            state = AddRectangle(state, r3);
+            state = AddRectangle(state, ExampleLines[2]);
             PrintState(state);
 
             Debug.Assert(CountOverlappingCells(state) == 4);
@@ -66,7 +70,7 @@ namespace Day03
         /// <remarks>
         /// This requires that there be exactly one non-overlapping claim.
         /// </remarks>
-        private static int FindNonOverlappingClaim(IImmutableDictionary<(int x, int y), IImmutableSet<int>> fabricClaims)
+        public static int FindNonOverlappingClaim(IImmutableDictionary<(int x, int y), IImmutableSet<int>> fabricClaims)
         {
             ImmutableDictionary<int, int> x = fabricClaims
                 .Aggregate(
@@ -86,7 +90,7 @@ namespace Day03
         /// </summary>
         /// <typeparam name="T">The claim type.</typeparam>
         /// <returns>An empty dictionaray.</returns>
-        private static IImmutableDictionary<(int x, int y), IImmutableSet<T>> GetEmptyState<T>() => ImmutableDictionary<(int x, int y), IImmutableSet<T>>.Empty;
+        public static IImmutableDictionary<(int x, int y), IImmutableSet<T>> GetEmptyState<T>() => ImmutableDictionary<(int x, int y), IImmutableSet<T>>.Empty;
 
         /// <summary>
         /// Adds a rectangle of the specified dimensions with the given claim.
@@ -95,7 +99,7 @@ namespace Day03
         /// <param name="state">The current claims.</param>
         /// <param name="rectangle">Rectangle claim and dimensions.</param>
         /// <returns>The modified state.</returns>
-        private static IImmutableDictionary<(int x, int y), IImmutableSet<T>> AddRectangle<T>(
+        public static IImmutableDictionary<(int x, int y), IImmutableSet<T>> AddRectangle<T>(
             IImmutableDictionary<(int x, int y), IImmutableSet<T>> state,
             (T id, int x, int y, int w, int h) rectangle)
         {
@@ -146,7 +150,7 @@ namespace Day03
         /// <typeparam name="T">Claim type.</typeparam>
         /// <param name="state">The claims.</param>
         /// <returns>The number of cells that have more than one claim.</returns>
-        private static int CountOverlappingCells<T>(IImmutableDictionary<(int x, int y), IImmutableSet<T>> state) =>
+        public static int CountOverlappingCells<T>(IImmutableDictionary<(int x, int y), IImmutableSet<T>> state) =>
             state.Count(kv => kv.Value.Count > 1);
 
         /// <summary>
