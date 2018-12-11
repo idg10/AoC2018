@@ -92,7 +92,7 @@ namespace Day06
     /// <para>
     /// So a point's region is finite if each of its quadrants contains at least one other point.
     /// This can be done by a minimum of 2 points if each of those straddle quadrant boundaries.
-    /// For example, point A here at (10, 10) is finite because of constrainst imposed by point
+    /// For example, point A here at (10, 10) is finite because of constraints imposed by point
     /// B at (5, 5) and C at (15, 15):
     /// </para>
     /// <code>
@@ -229,6 +229,40 @@ namespace Day06
 
                 Console.WriteLine();
             }
+        }
+
+        /// <summary>
+        /// Determine which quadrants a point belongs to.
+        /// </summary>
+        /// <param name="centre">The centre from which to test.</param>
+        /// <param name="pointToTest">The point to test.</param>
+        /// <returns>
+        /// The quadrant or (if a point straddles a quadrant boundary) quadrants in which the
+        /// point to test lies relative to the centre.
+        /// </returns>
+        /// <remarks>
+        /// The quadrant boundaries are at a 45 degree offset to the axes, so instead of the
+        /// more usual top right, bottom right, bottom left, top left, we use just top, right
+        /// bottom, and left.
+        /// </remarks>
+        public static Quadrants GetQuadrants((int x, int y) centre, (int x, int y) pointToTest)
+        {
+            int x = pointToTest.x - centre.x;
+
+            // Inverting to get +ve y => up
+            // Apparently I'm incapable of getting this sort of code right when the y axis
+            // is inverted, as it is throughout most of Day 6.
+            int y = centre.y - pointToTest.y;
+
+            bool topRightHalf = x >= -y;
+            bool bottomLeftHalf = x <= -y;
+            bool topLeftHalf = x <= y;
+            bool bottomRightHalf = x >= y;
+            return
+                (topRightHalf && topLeftHalf ? Quadrants.Top : default) |
+                (topRightHalf && bottomRightHalf ? Quadrants.Right : default) |
+                (bottomLeftHalf && bottomRightHalf ? Quadrants.Bottom : default) |
+                (bottomLeftHalf && topLeftHalf ? Quadrants.Left : default);
         }
     }
 }
