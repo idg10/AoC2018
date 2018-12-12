@@ -1,4 +1,5 @@
-﻿using Day06;
+﻿using System.Linq;
+using Day06;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Tests
@@ -89,6 +90,39 @@ namespace Tests
             Assert.AreEqual(
                 Quadrants.Top | Quadrants.Left | Quadrants.Right | Quadrants.Bottom,
                 Program.GetQuadrants((5, 5), (5, 5)));
+        }
+
+        [TestMethod]
+        public void ExampleFiniteRegions()
+        {
+            var regions = Program.GetFiniteRegionCentres(Program.ExampleInput);
+            Assert.AreEqual(2, regions.Count());
+            Assert.IsTrue(regions.Contains((3,4)), "(3,4)");
+            Assert.IsTrue(regions.Contains((5,5)), "(5,5)");
+        }
+
+        [TestMethod]
+        public void ExampleBoundingBox()
+        {
+            var size = Program.GetBoundingBoxFromOrigin(Program.ExampleInput);
+            Assert.AreEqual((8, 9), size);
+        }
+
+        [TestMethod]
+        public void ExampleFiniteRegionSizes()
+        {
+            var exampleMap = Program.PopulateRegions(10, 10, Program.ExampleInput);
+            var regionSizes = Program.GetFiniteRegionSizes(exampleMap, Program.ExampleInput);
+            Assert.AreEqual(2, regionSizes.Count);
+            Assert.AreEqual(9, regionSizes[(3, 4)]);
+            Assert.AreEqual(17, regionSizes[(5, 5)]);
+        }
+
+        [TestMethod]
+        public void Part1Example()
+        {
+            int result = Program.SolvePart1(Program.ExampleInput);
+            Assert.AreEqual(17, result);
         }
     }
 }

@@ -116,14 +116,30 @@ namespace Day06
     /// ...........cccccccc
     /// ...........cccccccc
     /// </code>
+    /// <para>
+    /// Thus we can narrow down the regions of interest. The next question is: how large an area
+    /// do we need to consider? Looking at the images above, it looks like for a particular
+    /// direction of constraint, e.g., if B constrains A from above, then the constrained region
+    /// cannot go past the line containing that constrained point, e.g. A's region cannot get
+    /// higher than B if B constrains it from above. The reason for this is that for B to constrain
+    /// A from above, it must be within the top quadrant, which has the effect that the shortest
+    /// distance from B to a vertical line containing A must necessarily be less than or equal to
+    /// the shortest distance from A to that same point. (In the case where B straddles a quadrant
+    /// boundary, those distances will be equal, and if B is strictly inside the quadrant, its
+    /// distance to that point will be shorter). This means that B excludes A from that point,
+    /// and since further moves away from B will also increase the distance from A, any moves
+    /// further along the line will continue to exclude A.
+    /// </para>
+    /// <para>
+    /// The upshot of this is that we can take the bounding box of all the points and calculate
+    /// region occupancy for that, because points on the edge of the box will be infinite, and
+    /// any finite regions will necessarily be unable to extend past the box defined by those
+    /// points.
+    /// </para>
     /// </remarks>
     public static class Program
     {
-        private static Func<string, (int x, int y)> parseLine = LineProcessor(pInt32CommaInt32);
-
-        static void Main(string[] args)
-        {
-            string[] testInput =
+        private readonly static string[] exampleInputLines =
             {
                 "1, 1",
                 "1, 6",
@@ -133,18 +149,29 @@ namespace Day06
                 "8, 9"
             };
 
-            IImmutableList<(int x, int y)> exampleInput = testInput
-                .Select(parseLine)
-                .ToImmutableList();
+        private static Func<string, (int x, int y)> parseLine = LineProcessor(pInt32CommaInt32);
 
-            IImmutableDictionary<(int x, int y), (int x, int y)> exampleMap = PopulateRegions(10, 10, exampleInput);
+        public readonly static IImmutableList<(int x, int y)> ExampleInput = exampleInputLines
+            .Select(parseLine)
+            .ToImmutableList();
 
-            PrintMap(exampleMap, exampleInput);
+
+        static void Main(string[] args)
+        {
+            IImmutableDictionary<(int x, int y), (int x, int y)> exampleMap = PopulateRegions(10, 10, ExampleInput);
+
+            PrintMap(exampleMap, ExampleInput);
 
             Console.WriteLine();
 
-            PrintMapFor(20, 20, new[] { (10, 10), (5, 5), (15, 15) });
-            Console.WriteLine();
+            int part1ExampleResult = SolvePart1(ExampleInput);
+            Console.WriteLine("Example part 1: " + part1ExampleResult);
+
+            int part1Result = SolvePart1(InputReader.ParseLines(typeof(Program), pInt32CommaInt32).ToImmutableList());
+            Console.WriteLine("Part 1: " + part1Result);
+
+            //PrintMapFor(20, 20, new[] { (10, 10), (5, 5), (15, 15) });
+            //Console.WriteLine();
 
             //PrintMapFor(20, 20, new[] { (10, 10), (1, 7) });
             //Console.WriteLine();
@@ -175,10 +202,54 @@ namespace Day06
             //PrintMapFor(20, 20, new[] { (10, 10), (14, 7) });
         }
 
+        public static int SolvePart1(IImmutableList<(int x, int y)> input)
+        {
+            var size = Program.GetBoundingBoxFromOrigin(input);
+            var data = PopulateRegions(size.w, size.h, input);
+            var sizes = GetFiniteRegionSizes(data, input);
+            return sizes.Max(s => s.Value);
+        }
+
         private static void PrintMapFor(int w, int h, (int, int)[] p)
         {
             PrintMap(PopulateRegions(w, h, p), p);
         }
+
+        public static IEnumerable<(int x, int y)> GetFiniteRegionCentres(
+            IEnumerable<(int x, int y)> inputPoints)
+        {
+            Quadrants GetPointQuadrants((int x, int y) p) => inputPoints
+                    .Where(p2 => p2 != p)
+                    .Aggregate(
+                        default(Quadrants),
+                        (q, p2) => q | GetQuadrants(p, p2));
+
+            return inputPoints
+                .Where(p => GetPointQuadrants(p) == Quadrants.All);
+        }
+
+        public static (int w, int h) GetBoundingBoxFromOrigin(
+            IEnumerable<(int x, int y)> inputPoints) => inputPoints.Aggregate(
+                (w: 0, h: 0),
+                (d, p) => (Math.Max(d.w, p.x), Math.Max(d.h, p.y)));
+
+        public static IImmutableDictionary<(int x, int y), int> GetFiniteRegionSizes(
+            IImmutableDictionary<(int x, int y), (int x, int y)> data,
+            IEnumerable<(int x, int y)> inputPoints)
+        {
+            var finiteRegionCentres = new System.Collections.Generic.HashSet<(int x, int y)>(GetFiniteRegionCentres(inputPoints));
+
+            return GetRegionSizes(data)
+                .Where(p => finiteRegionCentres.Contains(p.centre))
+                .ToImmutableDictionary(p => p.centre, p => p.size);
+        }
+
+        public static IEnumerable<((int x, int y) centre, int size)> GetRegionSizes(
+            IImmutableDictionary<(int x, int y), (int x, int y)> data) => data
+            .GroupBy(
+                p => p.Value,
+                p => p.Key)
+            .Select(g => (g.Key, g.Count()));
 
         public static IImmutableDictionary<(int x, int y), (int x, int y)> PopulateRegions(
             int w, int h, IEnumerable<(int x, int y)> inputPoints)
