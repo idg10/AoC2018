@@ -8,6 +8,8 @@ namespace Day06
     [Flags]
     public enum Quadrants
     {
+        Unknown = 0,
+
         Top = 1,
         Right = 2,
         Bottom = 4,

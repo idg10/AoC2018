@@ -124,5 +124,12 @@ namespace Tests
             int result = Program.SolvePart1(Program.ExampleInput);
             Assert.AreEqual(17, result);
         }
+
+        [TestMethod]
+        public void Part2Example()
+        {
+            int result = Program.SolvePart2(Program.ExampleInput, 32);
+            Assert.AreEqual(16, result);
+        }
     }
 }

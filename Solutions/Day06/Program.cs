@@ -149,70 +149,61 @@ namespace Day06
                 "8, 9"
             };
 
-        private static Func<string, (int x, int y)> parseLine = LineProcessor(pInt32CommaInt32);
+        private static readonly Func<string, (int x, int y)> parseLine = LineProcessor(pInt32CommaInt32);
 
         public readonly static IImmutableList<(int x, int y)> ExampleInput = exampleInputLines
             .Select(parseLine)
             .ToImmutableList();
 
-
-        static void Main(string[] args)
+        private static void Main()
         {
             IImmutableDictionary<(int x, int y), (int x, int y)> exampleMap = PopulateRegions(10, 10, ExampleInput);
 
-            PrintMap(exampleMap, ExampleInput);
+            PrintRegionMap(exampleMap, ExampleInput);
 
+            Console.WriteLine();
+            PrintMapFor(20, 20, new[] { (10, 10), (5, 5), (15, 15) });
             Console.WriteLine();
 
             int part1ExampleResult = SolvePart1(ExampleInput);
             Console.WriteLine("Example part 1: " + part1ExampleResult);
 
-            int part1Result = SolvePart1(InputReader.ParseLines(typeof(Program), pInt32CommaInt32).ToImmutableList());
+            var input = InputReader.ParseLines(typeof(Program), pInt32CommaInt32).ToImmutableList();
+            int part1Result = SolvePart1(input);
             Console.WriteLine("Part 1: " + part1Result);
 
-            //PrintMapFor(20, 20, new[] { (10, 10), (5, 5), (15, 15) });
-            //Console.WriteLine();
+            Console.WriteLine();
 
-            //PrintMapFor(20, 20, new[] { (10, 10), (1, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (2, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (3, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (4, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (5, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (6, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (7, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (8, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (9, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (10, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (11, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (12, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (13, 7) });
-            //Console.WriteLine();
-            //PrintMapFor(20, 20, new[] { (10, 10), (14, 7) });
+            var part2ExampleMap = PopulateDistanceSumMap(10, 10, ExampleInput);
+            PrintThresholdMap(part2ExampleMap, ExampleInput, 32);
+            Console.WriteLine();
+            int part2ExampleResult = SolvePart2(ExampleInput, 32);
+            Console.WriteLine("Example part 2: " + part2ExampleResult);
+
+            int part2Result = SolvePart2(
+                input,
+                10000);
+            Console.WriteLine("Part 2: " + part2Result);
         }
 
         public static int SolvePart1(IImmutableList<(int x, int y)> input)
         {
-            var size = Program.GetBoundingBoxFromOrigin(input);
-            var data = PopulateRegions(size.w, size.h, input);
+            (int w, int h) = GetBoundingBoxFromOrigin(input);
+            var data = PopulateRegions(w, h, input);
             var sizes = GetFiniteRegionSizes(data, input);
             return sizes.Max(s => s.Value);
         }
 
+        public static int SolvePart2(IImmutableList<(int x, int y)> input, int threshold)
+        {
+            (int w, int h) = GetBoundingBoxFromOrigin(input);
+            var data = PopulateDistanceSumMap(w, h, input);
+            return GetSizeOfRegionWhereDistanceSumIsBelowThreshold(data, threshold);
+        }
+
         private static void PrintMapFor(int w, int h, (int, int)[] p)
         {
-            PrintMap(PopulateRegions(w, h, p), p);
+            PrintRegionMap(PopulateRegions(w, h, p), p);
         }
 
         public static IEnumerable<(int x, int y)> GetFiniteRegionCentres(
@@ -221,7 +212,7 @@ namespace Day06
             Quadrants GetPointQuadrants((int x, int y) p) => inputPoints
                     .Where(p2 => p2 != p)
                     .Aggregate(
-                        default(Quadrants),
+                        Quadrants.Unknown,
                         (q, p2) => q | GetQuadrants(p, p2));
 
             return inputPoints
@@ -264,11 +255,27 @@ namespace Day06
             return q.ToImmutableDictionary(x => x.p, x => x.regionCentre);
         }
 
+        public static IImmutableDictionary<(int x, int y), int> PopulateDistanceSumMap(
+            int w, int h, IEnumerable<(int x, int y)> inputPoints)
+        {
+            var q =
+                from x in Enumerable.Range(0, w)
+                from y in Enumerable.Range(0, h)
+                select (p: (x, y), sum: inputPoints.Sum(p => ManhattanDistance((x, y), p)));
+
+            return q.ToImmutableDictionary(x => x.p, x => x.sum);
+        }
+
+        public static int GetSizeOfRegionWhereDistanceSumIsBelowThreshold(
+            IImmutableDictionary<(int x, int y), int> distanceSumMap,
+            int threshold)
+            => distanceSumMap.Count(kv => kv.Value < threshold);
+
         public static int ManhattanDistance(int x, int y) => x + y;
 
         public static int ManhattanDistance((int x, int y) p1, (int x, int y) p2) => ManhattanDistance(Math.Abs(p1.x - p2.x), Math.Abs(p1.y - p2.y));
 
-        public static void PrintMap(
+        public static void PrintRegionMap(
             IImmutableDictionary<(int x, int y), (int x, int y)> data,
             IEnumerable<(int x, int y)> points)
         {
@@ -294,6 +301,35 @@ namespace Day06
                         {
                             c = char.ToUpper(c);
                         }
+                    }
+                    Console.Write(c);
+                }
+
+                Console.WriteLine();
+            }
+        }
+
+        public static void PrintThresholdMap(
+            IImmutableDictionary<(int x, int y), int> data,
+            IEnumerable<(int x, int y)> points,
+            int threshold)
+        {
+            (int w, int h) = data.Aggregate((x: 0, y: 0), (d, p) => (Math.Max(d.x, p.Key.x), Math.Max(d.y, p.Key.y)));
+
+            var pointToLabelMap = points
+                .Select((p, i) => (p, i))
+                .Aggregate(
+                    ImmutableDictionary<(int x, int y), char>.Empty,
+                    (d, x) => d.Add(x.p, (char) ('A' + ((char) (x.i % 26)))));
+
+            for (int row = 0; row < h; ++row)
+            {
+                for (int col = 0; col < w; ++col)
+                {
+                    (int x, int y) mapPoint = (col, row);
+                    if (!pointToLabelMap.TryGetValue(mapPoint, out char c))
+                    {
+                        c = data[mapPoint] < threshold ? '#' : '.';
                     }
                     Console.Write(c);
                 }
@@ -330,10 +366,10 @@ namespace Day06
             bool topLeftHalf = x <= y;
             bool bottomRightHalf = x >= y;
             return
-                (topRightHalf && topLeftHalf ? Quadrants.Top : default) |
-                (topRightHalf && bottomRightHalf ? Quadrants.Right : default) |
-                (bottomLeftHalf && bottomRightHalf ? Quadrants.Bottom : default) |
-                (bottomLeftHalf && topLeftHalf ? Quadrants.Left : default);
+                (topRightHalf && topLeftHalf ? Quadrants.Top : default)
+                | (topRightHalf && bottomRightHalf ? Quadrants.Right : default)
+                | (bottomLeftHalf && bottomRightHalf ? Quadrants.Bottom : default)
+                | (bottomLeftHalf && topLeftHalf ? Quadrants.Left : default);
         }
     }
 }
