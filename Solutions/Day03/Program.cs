@@ -18,7 +18,7 @@ namespace Day03
     {
         // Parse lines of this form:
         //  #1 @ 1,3: 4x4
-        private static Parser<(int id, int x, int y, int w, int h)> lineParser =
+        private static readonly Parser<(int id, int x, int y, int w, int h)> lineParser =
             from id in between(ch('#'), spaces, pInt32)
             from _ in ch('@')
             from p in between(spaces, ch(':'), pInt32CommaInt32)
@@ -26,8 +26,7 @@ namespace Day03
             from s in pInt32ByInt32
             select (id: id, x: p.x, y: p.y, w: s.w, h: s.h);
 
-        private static Func<string, (int id, int x, int y, int w, int h)> parseLine = LineProcessor(lineParser);
-
+        private static readonly Func<string, (int id, int x, int y, int w, int h)> parseLine = LineProcessor(lineParser);
 
         public static (int id, int x, int y, int w, int h)[] ExampleLines { get; } = new[]
         {

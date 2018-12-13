@@ -7,8 +7,7 @@ namespace Day05
 {
     public static class Program
     {
-
-        private static void Main(string[] args)
+        private static void Main()
         {
             string input = InputReader.EnumerateLines(typeof(Program)).Single();
             Console.WriteLine("Part 1: " + Part1(input));
@@ -59,7 +58,7 @@ namespace Day05
         public static IEnumerable<string> ProcessAllReactions(string input)
         {
             return EnumerableEx.Generate(
-                (input: input, done: false),
+                (input, done: false),
                 s => !s.done,
                 s =>
                 {
