@@ -10,17 +10,15 @@ namespace Day07
     /// </summary>
     public sealed class State
     {
-        private readonly char nextAvailable;
-
         private State(
             IImmutableDictionary<char, IImmutableSet<char>> waitingForByState)
         {
             WaitingForByState = waitingForByState;
-            (HasNextAvailable, nextAvailable) = WaitingForByState
+            NextAvailable = WaitingForByState
                 .Where(kv => kv.Value.IsEmpty())
-                .Aggregate(
-                    (false, min: default(char)),
-                    (a, s) => (true, a.min > s.Key || a.min == default ? s.Key : a.min));
+                .OrderBy(kv => kv.Key)
+                .Select(kv => kv.Key)
+                .ToArray();
         }
 
         /// <summary>
@@ -53,13 +51,15 @@ namespace Day07
         /// <summary>
         /// Gets a value indicating whether there is an available next step.
         /// </summary>
-        public bool HasNextAvailable { get; }
+        public bool HasNextAvailable => NextAvailable.Length > 0;
+
+        public char[] NextAvailable { get; }
 
         /// <summary>
         /// Gets the next available step.
         /// </summary>
-        public char NextAvailable => HasNextAvailable
-            ? nextAvailable
+        public char TopNextAvailable => HasNextAvailable
+            ? NextAvailable[0]
             : throw new InvalidOperationException("No next item available");
 
         /// <summary>

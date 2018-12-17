@@ -48,7 +48,7 @@ namespace Day07
             EnumerableEx.Generate(
                 State.Start(rules),
                 s => s.HasNextAvailable,
-                s => s.ExecuteStep(s.NextAvailable),
-                s => (s.NextAvailable, s));
+                s => s.ExecuteStep(s.TopNextAvailable),
+                s => (s.TopNextAvailable, s));
     }
 }
