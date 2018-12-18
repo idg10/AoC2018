@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Common;
 using Day07;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

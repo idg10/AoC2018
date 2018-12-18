@@ -6,11 +6,8 @@ using System.Linq;
 using Common;
 
 using LanguageExt;
-using LanguageExt.Parsec;
 
 using static Common.Parsers;
-using static LanguageExt.Parsec.Char;
-using static LanguageExt.Parsec.Prim;
 
 namespace Day06
 {

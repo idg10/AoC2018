@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Day07
+﻿namespace Day07
 {
     public class StepConstraint
     {
