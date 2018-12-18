@@ -31,18 +31,21 @@ namespace Day07
                 (acc, workerIndex) =>
                 {
                     WorkInProgress ws = acc.workerState[workerIndex];
-                    return ws.MinutesRemaining == 1
-                        ? (stepState.ExecuteStep(ws.Step),
-                           acc.workerState.SetItem(workerIndex, null),
-                           acc.completed.Add(ws.Step))
-                        : (stepState,
-                           acc.workerState.SetItem(workerIndex, new WorkInProgress(ws.Step, ws.MinutesRemaining - 1)),
-                           acc.completed);
+                    return ws == null
+                        ? (acc.stepState, acc.workerState, acc.completed)
+                        : ws.MinutesRemaining == 1
+                            ? (stepState.ExecuteStep(ws.Step),
+                               acc.workerState.SetItem(workerIndex, null),
+                               acc.completed.Add(ws.Step))
+                            : (acc.stepState,
+                               acc.workerState.SetItem(workerIndex, new WorkInProgress(ws.Step, ws.MinutesRemaining - 1)),
+                               acc.completed);
                 });
 
             IEnumerable<(char step, int workerIndex)> workToStart = updatedStepState
                 .NextAvailable
-                .Zip(WorkerState.Select((w, i) => (w, i)).Where(x => x.w == null).Select(x => x.i));
+                .Where(step => !workerState.Any(ws => ws?.Step == step))
+                .Zip(workerState.Select((w, i) => (w, i)).Where(x => x.w == null).Select(x => x.i));
 
             var updatedWorkerState = workToStart.Aggregate(
                 workerState,
@@ -56,7 +59,7 @@ namespace Day07
         /// </summary>
         public IImmutableList<WorkInProgress> WorkerState { get; }
 
-        private int GetStepExecutionTime(char step) => step - 'A' + baseStepTime;
+        private int GetStepExecutionTime(char step) => step - 'A' + baseStepTime + 1;
 
         public class WorkInProgress
         {

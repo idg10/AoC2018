@@ -39,6 +39,24 @@ namespace Day07
             Console.WriteLine("Part 1 example: " + part1Example);
             string part1 = Part1(InputReader.ParseLines(typeof(Program), LineParser));
             Console.WriteLine("Part 1: " + part1);
+
+            var part2Steps = RunPart2(ExampleInput, 2, 0).Take(40).ToList();
+            int i = 1;
+            foreach (var step in part2Steps)
+            {
+                Console.Write("{0:,###} ", i++);
+                for (int w = 0; w < 2; ++w)
+                {
+                    var ws = step.serviceState.WorkerState[w];
+                    Console.Write(ws?.Step ?? '.');
+                    Console.Write(' ');
+                }
+                Console.WriteLine(step.stepsDone);
+            }
+
+
+            int part2 = RunPart2(InputReader.ParseLines(typeof(Program), LineParser), 5, 60).Count();
+            Console.WriteLine("Part 2: " + part2);
         }
 
         public static string Part1(IEnumerable<StepConstraint> input) => new string(
@@ -50,5 +68,29 @@ namespace Day07
                 s => s.HasNextAvailable,
                 s => s.ExecuteStep(s.TopNextAvailable),
                 s => (s.TopNextAvailable, s));
+
+        /// <summary>
+        /// Execute steps for part two, producing a sequence reporting for each second the current
+        /// processed step state (<see cref="State"/>) and the state of all the workers
+        /// (<see cref="NationalElfService"/>).
+        /// </summary>
+        /// <param name="rules"></param>
+        /// <param name="workers"></param>
+        /// <param name="baseTime"></param>
+        /// <returns></returns>
+        public static IEnumerable<(State stepState, NationalElfService serviceState, string stepsDone)> RunPart2(
+            IEnumerable<StepConstraint> rules,
+            int workers,
+            int baseTime) =>
+            EnumerableEx.Generate(
+                (stepState: State.Start(rules), serviceState: NationalElfService.Create(workers, baseTime), stepsDone: ""),
+                (s) => s.serviceState.WorkerState.Any(ws => ws != null) || s.stepState.HasNextAvailable,
+                s =>
+                {
+                    var next = s.serviceState.ProcessOneSecond(s.stepState);
+                    return (next.stepStep, next.serviceState, s.stepsDone + new string(next.stepsDone.ToArray()));
+                },
+                s => s)
+            .Skip(1);
     }
 }
