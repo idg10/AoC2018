@@ -23,11 +23,14 @@ namespace Day08
 
         public static Node ExampleNode = ProcessLine(NodeParser, ExampleInput);
 
-        static void Main(string[] args)
+        static void Main()
         {
             Node inputNode = InputReader.ParseLines(typeof(Program), NodeParser).Single();
             int part1 = Part1(inputNode);
             Console.WriteLine("Part 1: " + part1);
+
+            int part2 = inputNode.CalculateValue();
+            Console.WriteLine("Part 2: " + part2);
         }
 
         public static int Part1(Node node) => EnumerableEx
