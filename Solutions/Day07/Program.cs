@@ -42,18 +42,17 @@ namespace Day07
 
             var part2Steps = RunPart2(ExampleInput, 2, 0).Take(40).ToList();
             int i = 1;
-            foreach (var step in part2Steps)
+            foreach ((State stepState, NationalElfService serviceState, string stepsDone) in part2Steps)
             {
                 Console.Write("{0:,###} ", i++);
                 for (int w = 0; w < 2; ++w)
                 {
-                    var ws = step.serviceState.WorkerState[w];
+                    var ws = serviceState.WorkerState[w];
                     Console.Write(ws?.Step ?? '.');
                     Console.Write(' ');
                 }
-                Console.WriteLine(step.stepsDone);
+                Console.WriteLine(stepsDone);
             }
-
 
             int part2 = RunPart2(InputReader.ParseLines(typeof(Program), LineParser), 5, 60).Count();
             Console.WriteLine("Part 2: " + part2);
@@ -87,8 +86,8 @@ namespace Day07
                 (s) => s.serviceState.WorkerState.Any(ws => ws != null) || s.stepState.HasNextAvailable,
                 s =>
                 {
-                    var next = s.serviceState.ProcessOneSecond(s.stepState);
-                    return (next.stepStep, next.serviceState, s.stepsDone + new string(next.stepsDone.ToArray()));
+                    (State stepStep, NationalElfService serviceState, IList<char> stepsDone) = s.serviceState.ProcessOneSecond(s.stepState);
+                    return (stepStep, serviceState, s.stepsDone + new string(stepsDone.ToArray()));
                 },
                 s => s)
             .Skip(1);

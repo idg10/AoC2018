@@ -23,7 +23,7 @@ namespace Day08
 
         public static Node ExampleNode = ProcessLine(NodeParser, ExampleInput);
 
-        static void Main()
+        private static void Main()
         {
             Node inputNode = InputReader.ParseLines(typeof(Program), NodeParser).Single();
             int part1 = Part1(inputNode);

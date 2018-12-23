@@ -24,7 +24,7 @@ namespace Day03
             from p in between(spaces, ch(':'), pInt32CommaInt32)
             from s3 in spaces
             from s in pInt32ByInt32
-            select (id: id, x: p.x, y: p.y, w: s.w, h: s.h);
+            select (id, p.x, p.y, s.w, s.h);
 
         private static readonly Func<string, (int id, int x, int y, int w, int h)> parseLine = LineProcessor(lineParser);
 

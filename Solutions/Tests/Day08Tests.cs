@@ -122,7 +122,6 @@ namespace Tests
             {
                 Node inputNode = InputReader.ParseLines(typeof(Program), NodeParser).Single();
                 Assert.AreEqual(41926, Part1(inputNode));
-
             }
         }
 
