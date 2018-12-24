@@ -14,8 +14,11 @@ namespace Day09
 
         private static void Main()
         {
-            int part1 = Part1(LastMarbleValue, Players);
+            long part1 = Part1(LastMarbleValue, Players);
             Console.WriteLine("Part 1: " + part1);
+
+            long part2 = Part1(LastMarbleValue * 100, Players);
+            Console.WriteLine("Part 2: " + part2);
         }
 
         public static IEnumerable<(GameState state, int? turnScore)> GenerateSteps() =>
@@ -25,16 +28,16 @@ namespace Day09
                 step => step.state.Next(),
                 step => step);
 
-        public static IImmutableList<int> Play(int steps, int players) =>
+        public static IImmutableList<long> Play(int steps, int players) =>
             GenerateSteps()
             .Take(steps)
             .Aggregate(
-                ImmutableList.CreateRange(Enumerable.Repeat(0, players)),
+                ImmutableList.CreateRange(Enumerable.Repeat(0L, players)),
                 (acc, turn) => turn.turnScore.HasValue
                     ? acc.SetItem(turn.state.LastTurn % players, acc[turn.state.LastTurn % players] + turn.turnScore.Value)
                     : acc);
 
-        public static int Part1(int steps, int players) =>
+        public static long Part1(int steps, int players) =>
             Play(steps + 1, players)
             .Max();
     }
