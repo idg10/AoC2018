@@ -9,14 +9,40 @@ namespace Day11
 
         private static void Main()
         {
-            (int x, int y) = SolvePart1(5093);
-            Console.WriteLine($"Part 1: {x},{y}");
+            (int x1, int y1) = SolvePart1(5093);
+            Console.WriteLine($"Part 1: {x1},{y1}");
+
+            (int x2, int y2, int size2) = SolvePart2(5093);
+            Console.WriteLine($"Part 2: {x2},{y2},{size2}");
         }
 
         public static (int x, int y) SolvePart1(int serialNumber)
         {
-            sbyte[,] windowSummedGrid = GenerateSummedGrid(3, 3, serialNumber);
+            int[,] windowSummedGrid = GenerateSummedGrid(3, 3, serialNumber);
             return FindMax(windowSummedGrid);
+        }
+
+        public static (int x, int y, int size) SolvePart2(int serialNumber)
+        {
+            int max = int.MinValue;
+            int mx = 0;
+            int my = 0;
+            int ms = 0;
+            for (int size = 1; size <= 300; ++size)
+            {
+                int[,] windowSummedGrid = GenerateSummedGrid(size, size, serialNumber);
+                (int x, int y) = FindMax(windowSummedGrid);
+                int thisMax = windowSummedGrid[x, y];
+                if (thisMax > max)
+                {
+                    mx = x;
+                    my = y;
+                    ms = size;
+                    max = thisMax;
+                }
+            }
+
+            return (mx, my, ms);
         }
 
         public static sbyte CalculatePower(int x, int y, int serialNumber)
@@ -31,16 +57,16 @@ namespace Day11
             return (sbyte) (hundredths - 5);
         }
 
-        public static sbyte[] GenerateSummedRow(int windowSize, int y, int serialNumber)
+        public static int[] GenerateSummedRow(int windowSize, int y, int serialNumber)
         {
-            var result = new sbyte[GridWidth - windowSize + 1];
-            var window = new sbyte[windowSize];
-            sbyte total = 0;
+            var result = new int[GridWidth - windowSize + 1];
+            var window = new int[windowSize];
+            int total = 0;
             for (int x = 0; x < GridWidth; ++x)
             {
                 int windowPos = x % windowSize;
                 total -= window[windowPos];
-                sbyte value = CalculatePower(x, y, serialNumber);
+                int value = CalculatePower(x, y, serialNumber);
                 window[windowPos] = value;
                 total += value;
                 int resultIndex = x - windowSize + 1;
@@ -53,18 +79,18 @@ namespace Day11
             return result;
         }
 
-        public static sbyte[,] GenerateSummedGrid(int windowWidth, int windowHeight, int serialNumber)
+        public static int[,] GenerateSummedGrid(int windowWidth, int windowHeight, int serialNumber)
         {
             int outputWidth = GridWidth - windowWidth + 1;
-            var result = new sbyte[outputWidth, GridHeight - windowHeight + 1];
-            var window = new sbyte[windowHeight][];
-            var totals = new sbyte[outputWidth];
+            var result = new int[outputWidth, GridHeight - windowHeight + 1];
+            var window = new int[windowHeight][];
+            var totals = new int[outputWidth];
 
             for (int y = 0; y < GridHeight; ++y)
             {
                 int windowPos = y % windowHeight;
-                sbyte[] oldRow = window[windowPos];
-                sbyte[] newRow = GenerateSummedRow(windowWidth, y, serialNumber);
+                int[] oldRow = window[windowPos];
+                int[] newRow = GenerateSummedRow(windowWidth, y, serialNumber);
                 for (int x = 0; x < outputWidth; ++x)
                 {
                     totals[x] -= oldRow?[x] ?? 0;
@@ -81,9 +107,9 @@ namespace Day11
             return result;
         }
 
-        public static (int x, int y) FindMax(sbyte[,] values)
+        public static (int x, int y) FindMax(int[,] values)
         {
-            int max = sbyte.MinValue;
+            int max = int.MinValue;
             int mx = 0;
             int my = 0;
             int w = values.GetLength(0);
@@ -92,7 +118,7 @@ namespace Day11
             {
                 for (int y = 0; y < h; ++y)
                 {
-                    sbyte v = values[x, y];
+                    int v = values[x, y];
                     if (v > max)
                     {
                         mx = x;

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Day11;
 
 namespace Tests
@@ -55,13 +52,13 @@ namespace Tests
             // ----------           : -2  + -4 + 4 = -2
             //     ----------       : -4  +  4 + 4 =  4
             //          ---------   :  4  +  4 + 4 = 12
-            sbyte[] row1 = Program.GenerateSummedRow(3, 44, 18);
+            int[] row1 = Program.GenerateSummedRow(3, 44, 18);
             Assert.AreEqual(-2, row1[32]);
             Assert.AreEqual(4, row1[33]);
             Assert.AreEqual(12, row1[34]);
 
             // Verify that our 2D windowed sums over the 1st 3 rows look correct.
-            sbyte[,] grid = Program.GenerateSummedGrid(3, 3, 18);
+            int[,] grid = Program.GenerateSummedGrid(3, 3, 18);
             Assert.AreEqual(12, grid[32, 44]);
             Assert.AreEqual(26, grid[33, 44]);
             Assert.AreEqual(18, grid[34, 44]);
@@ -86,6 +83,18 @@ namespace Tests
         public void Part1Example2()
         {
             Assert.AreEqual((x: 21, y: 61), Program.SolvePart1(42));
+        }
+
+        [TestMethod]
+        public void Part2Example1()
+        {
+            Assert.AreEqual((x: 90, y: 269, size: 16), Program.SolvePart2(18));
+        }
+
+        [TestMethod]
+        public void Part2Example2()
+        {
+            Assert.AreEqual((x: 232, y: 251, size: 12), Program.SolvePart2(42));
         }
     }
 }
