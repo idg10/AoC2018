@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-
+using System.Numerics;
 using Common;
 
 using LanguageExt;
@@ -79,12 +79,15 @@ namespace Day12
 
         private static void Main()
         {
-            int part1Example = SolvePart1(TestInitialState, TestRulesProducingPots, 20);
+            BigInteger part1Example = SolvePart1(TestInitialState, TestRulesProducingPots, 20);
             Console.WriteLine("Part 1 example: " + part1Example);
 
             (string initialState, string[] rulesProducingPots) = InputReader.ParseAll(typeof(Program), pAll);
-            int part1 = SolvePart1(initialState, rulesProducingPots, 20);
-            Console.WriteLine("Part 1 : " + part1);
+            BigInteger part1 = SolvePart1(initialState, rulesProducingPots, 20);
+            Console.WriteLine("Part 1: " + part1);
+
+            BigInteger part2 = SolvePart2(initialState, rulesProducingPots);
+            Console.WriteLine("Part 2: " + part2);
         }
 
         public static IEnumerable<char> Step(
@@ -119,16 +122,44 @@ namespace Day12
                 pots => pots);
         }
 
-        public static int SolvePart1(
+        public static BigInteger SolvePart1(
             string initialState,
             string[] rulesProducingPots,
             int generations)
         {
             Pots state = Run(initialState, rulesProducingPots).Skip(generations).First();
+            return CalculatePotsValue(state);
+        }
+
+        private static BigInteger CalculatePotsValue(Pots state)
+        {
             return state
                 .PotText
-                .Select((c, i) => c == '.' ? 0 : i + state.LeftIndex)
+                .Select((c, i) => c == '.' ? new BigInteger() : i + state.LeftIndex)
                 .Sum();
+        }
+
+        public static BigInteger SolvePart2(
+            string initialState,
+            string[] rulesProducingPots)
+        {
+            // We're going to make the theoretically totally unjustified (but empirically verifiable
+            // for my particular input) assumption that we eventually hit a steady state, in which
+            // the pattern of pots becomes fixed, but its position moves right by 1 for every iteration.
+            (Pots steady, int index) = Run(initialState, rulesProducingPots)
+                .Buffer(2, 1)
+                .TakeWhile(b => b[0].PotText != b[1].PotText)
+                .Aggregate(
+                    (pots: default(Pots), count: 0),
+                    (a, p) => (p[1], a.count + 1));
+
+            BigInteger valueAtCurrentIteration = CalculatePotsValue(steady);
+
+            var target = new BigInteger(50_000_000_000);
+            BigInteger iterationsRemaining = target - index;
+            BigInteger positionOfFinalPots = steady.LeftIndex + iterationsRemaining;
+
+            return CalculatePotsValue(new Pots(steady.PotText, positionOfFinalPots));
         }
     }
 }

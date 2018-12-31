@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using Day12;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

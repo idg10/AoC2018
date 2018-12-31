@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Numerics;
 
 namespace Day12
 {
@@ -9,13 +7,13 @@ namespace Day12
     {
         public Pots(
             string potText,
-            int leftIndex)
+            in BigInteger leftIndex)
         {
             PotText = potText;
             LeftIndex = leftIndex;
         }
 
         public string PotText { get; }
-        public int LeftIndex { get; }
+        public BigInteger LeftIndex { get; }
     }
 }

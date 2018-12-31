@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Numerics;
 
 namespace Common
 {
@@ -101,5 +102,14 @@ namespace Common
         /// <returns>An empty accumulator.</returns>
         private static (IImmutableDictionary<T, int> seenCounts, T value) MakeRepeatCountsStart<T>() =>
             (ImmutableDictionary<T, int>.Empty, default(T));
+
+        /// <summary>
+        /// Standard LINQ Sum operator for a sequence of BigIntegers.
+        /// </summary>
+        /// <param name="xs">The values to sum</param>
+        /// <returns>The sum.</returns>
+        public static BigInteger Sum(this IEnumerable<BigInteger> xs) => xs.Aggregate(
+            new BigInteger(),
+            (a, v) => a + v);
     }
 }
