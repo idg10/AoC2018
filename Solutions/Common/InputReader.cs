@@ -11,16 +11,9 @@ namespace Common
         public static IEnumerable<string> EnumerateLines(Type typeInContainingAssembly, string inputName = "Idg10Input.txt")
         {
             Assembly asm = typeInContainingAssembly.Assembly;
-            Console.WriteLine(asm);
-            Console.WriteLine(asm.CodeBase);
-            Console.WriteLine(asm.Location);
 
-            foreach (var n in asm.GetManifestResourceNames())
-            {
-                Console.WriteLine(n);
-            }
             using (Stream s = asm.GetManifestResourceStream(inputName) ?? asm.GetManifestResourceStream(typeInContainingAssembly.Namespace + "." + inputName))
-            using (StreamReader r = new StreamReader(s))
+            using (var r = new StreamReader(s))
             {
                 while (!r.EndOfStream)
                 {
@@ -31,6 +24,25 @@ namespace Common
                     }
                 }
             }
+        }
+
+        public static string ReadAll(Type typeInContainingAssembly, string inputName = "Idg10Input.txt")
+        {
+            Assembly asm = typeInContainingAssembly.Assembly;
+
+            using (Stream s = asm.GetManifestResourceStream(inputName) ?? asm.GetManifestResourceStream(typeInContainingAssembly.Namespace + "." + inputName))
+            using (var r = new StreamReader(s))
+            {
+                return r.ReadToEnd();
+            }
+        }
+
+        public static T ParseAll<T>(
+            Type typeInContainingAssembly,
+            Parser<T> p,
+            string inputName = "Idg10Input.txt")
+        {
+            return Parsers.ProcessLine(p, ReadAll(typeInContainingAssembly, inputName));
         }
 
         public static IEnumerable<T> ParseLines<T>(

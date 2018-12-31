@@ -112,6 +112,10 @@ namespace Common
             }
             else if (result.Reply.State.Index != result.Reply.State.EndIndex)
             {
+                if (!string.IsNullOrWhiteSpace(result.Reply.Error.Msg))
+                {
+                    Console.WriteLine($"{result.Reply.Error} {result.Reply.Error.Pos}");
+                }
                 string remaining = line.Substring(result.Reply.State.Index);
                 Console.WriteLine($"Unexpected text at end of line {lineNumber}: {remaining}");
                 Environment.Exit(1);
