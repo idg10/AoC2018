@@ -1,4 +1,5 @@
-﻿using Day13;
+﻿using System.Linq;
+using Day13;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Tests
@@ -299,12 +300,8 @@ v
 
             State after2 = after1.Update(out collisions);
             Assert.AreEqual(1, collisions.Count);
-            Assert.AreEqual(0, after2.Carts[0].X);
-            Assert.AreEqual(3, after2.Carts[0].Y);
-            Assert.AreEqual(CartDirection.South, after2.Carts[0].Direction);
-            Assert.AreEqual(0, after2.Carts[1].X);
-            Assert.AreEqual(3, after2.Carts[1].Y);
-            Assert.AreEqual(CartDirection.North, after2.Carts[1].Direction);
+            (int x, int y) final = collisions.Single();
+            Assert.AreEqual((0, 3), final);
         }
 
         [TestMethod]
@@ -320,6 +317,22 @@ v
 
             var firstCollision = Program.SolvePart1(map);
             Assert.AreEqual((7, 3), firstCollision);
+        }
+
+        [TestMethod]
+        public void Part2Example()
+        {
+            const string map =
+@"/>-<\  
+|   |  
+| /<+-\
+| | | v
+\>+</ |
+  |   ^
+  \<->/";
+
+            var lastPosition = Program.SolvePart2(map);
+            Assert.AreEqual((6, 4), lastPosition);
         }
     }
 }

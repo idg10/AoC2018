@@ -37,18 +37,49 @@ namespace Day13
 
         private static void Main()
         {
-            Console.WriteLine("Part 1: " + SolvePart1(InputReader.ReadAll(typeof(Program))));
+            string map = InputReader.ReadAll(typeof(Program));
+            Console.WriteLine("Part 1: " + SolvePart1(map));
+            Console.WriteLine("Part 2: " + SolvePart2(map));
         }
 
-        public static (int x, int y) SolvePart1(string map) => EnumerableEx
+        public static (int x, int y) SolvePart1(string map) =>
+            RunToCollision(LoadMap(map)).collisions.SingleOrDefault();
+
+        public static (State s, ICollection<(int x, int y)> collisions) RunToCollision(State startState) => EnumerableEx
             .Generate(
-                //LoadMap(map),
-                (state: LoadMap(map), collisions: (ICollection<(int x, int y)>) new (int x, int y)[0]),
+                (state: startState,
+                 collisions: (ICollection<(int x, int y)>) new (int x, int y)[0],
+                 last: false,
+                 lastButOne: false),
+                s => !s.last,
+                s => (s.state.Update(out var c), c, s.lastButOne, c.Count != 0),
+                s => (s.state, s.collisions))
+            .Last();
+
+        public static (int x, int y) SolvePart2(string map)
+        {
+            CartState c = GetCartForPart2(map);
+            return (c.X, c.Y);
+        }
+
+        public static CartState GetCartForPart2(string map) => EnumerableEx
+            .Generate(
+                LoadMap(map),
                 _ => true,
-                s => (s.state.Update(out var c), c),
-                s => s.collisions)
-            .SelectMany(c => c)
-            .First();
+                s =>
+                {
+                    (State collidedState, ICollection<(int x, int y)> collisions) = RunToCollision(s);
+
+                    if (collisions.Count > 0)
+                    {
+                        Console.WriteLine("Remaining carts: " + collidedState.Carts.Count);
+                    }
+
+                    return collidedState;
+                },
+                s => s)
+            .First(s => s.Carts.Count == 1)
+            .Carts[0];
 
         public interface IMapReceiver
         {
@@ -62,6 +93,8 @@ namespace Day13
             var mapr = ProcessLine(many(pInputChar), map).Aggregate(
                 new MapReceiver(),
                 (m, a) => { a(m); return m; });
+            Console.WriteLine("Carts: " + mapr.Carts.Count);
+
             return new State(
                 new Map(
                     mapr.Width,
