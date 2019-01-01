@@ -2,4 +2,8 @@
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>RCS1089</NoWarn>
+  </PropertyGroup>
 </Project>

@@ -79,6 +79,47 @@ namespace Common
             select (x, y);
 
         /// <summary>
+        /// Replaces the result of a parser with a fixed value.
+        /// </summary>
+        /// <typeparam name="TParse">The type of the result of the original parser, which will be discarded.</typeparam>
+        /// <typeparam name="TResult">The type of result to return instead.</typeparam>
+        /// <param name="p">The parser whose result is to be replaced.</param>
+        /// <param name="result">The result to use.</param>
+        /// <returns>
+        /// A parser which matches exactly the same input as the original parser, but which produces
+        /// the specified result.
+        /// </returns>
+        public static Parser<TResult> As<TParse, TResult>(this Parser<TParse> p, TResult result) =>
+            from x in p
+            select result;
+
+        /// <summary>
+        /// Match a particular character, and then return a specific value for that.
+        /// </summary>
+        /// <typeparam name="T">The type to return.</typeparam>
+        /// <param name="c">The character to match.</param>
+        /// <param name="result">The value to return.</param>
+        /// <returns>
+        /// A parser.
+        /// </returns>
+        public static Parser<T> CharAs<T>(char c, T result) => ch(c).As(result);
+
+        /// <summary>
+        /// Match a parser and return an action that accepts the value and some other input
+        /// (typically a notification interface).
+        /// </summary>
+        /// <typeparam name="TValue">The type of value produced by the parser.</typeparam>
+        /// <typeparam name="TNotify">The other type passed to the action.</typeparam>
+        /// <param name="p">The parser.</param>
+        /// <param name="action">The action to invoke.</param>
+        /// <returns>A parser</returns>
+        public static Parser<Action<TNotify>> AsAction<TValue, TNotify>(
+            this Parser<TValue> p,
+            Action<TNotify, TValue> action) =>
+            from v in p
+            select (Action<TNotify>) (n => action(n, v));
+
+        /// <summary>
         /// Produce a function that parses a single line of text.
         /// </summary>
         /// <typeparam name="T">The parsed output type.</typeparam>
