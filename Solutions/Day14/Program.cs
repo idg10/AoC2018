@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace Day14
@@ -15,6 +14,7 @@ namespace Day14
             Console.WriteLine(first30);
 
             Console.WriteLine("Part 1: " + SolvePart1(165061));
+            Console.WriteLine("Part 2: " + SolvePart2(21000000, "165061"));
         }
 
         public static string SolvePart1(int count) => new string(
@@ -23,6 +23,15 @@ namespace Day14
             .Take(10)
             .Select(i => (char) ('0' + i))
             .ToArray());
+
+        public static int SolvePart2(int n, string pattern)
+        {
+            string firstN = new string(GenerateScoreboard(n + pattern.Length)
+                .Select(i => (char) ('0' + i))
+                .ToArray());
+
+            return firstN.IndexOf(pattern);
+        }
 
         public static IEnumerable<byte> GenerateScoreboard(int length)
         {

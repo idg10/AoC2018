@@ -152,5 +152,29 @@ namespace Tests
         {
             Assert.AreEqual("5992684592", Program.SolvePart1(165061));
         }
+
+        [TestMethod]
+        public void Part2Example1()
+        {
+            Assert.AreEqual(9, Program.SolvePart2(100, "51589"));
+        }
+
+        [TestMethod]
+        public void Part2Example2()
+        {
+            Assert.AreEqual(5, Program.SolvePart2(100, "01245"));
+        }
+
+        [TestMethod]
+        public void Part2Example3()
+        {
+            Assert.AreEqual(18, Program.SolvePart2(100, "92510"));
+        }
+
+        [TestMethod]
+        public void Part2Example4()
+        {
+            Assert.AreEqual(2018, Program.SolvePart2(3000, "59414"));
+        }
     }
 }
