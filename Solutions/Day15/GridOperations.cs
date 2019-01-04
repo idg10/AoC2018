@@ -278,7 +278,7 @@ namespace Day15
             //     orderby rankSelector(c), irp.y, irp.x, xy2.y, xy2.x
             //     select ((GridCell, int x, int y)?)(c, coords.x, coords.y))
             //    .FirstOrDefault();
-            
+
             // However, it turns out that this function is a hotspot - it's essentially
             // the inner loop for most of the work we do. The problem with that LINQ
             // query is that it's quite allocatey. Not only is that expensive, it also
