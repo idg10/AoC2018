@@ -35,8 +35,9 @@ namespace Tests
 #.G...#
 #.....#
 #######";
-            GridCell[,] grid = GridOperations.ParseGrid(map);
-            grid = GridOperations.CalculateCloseness(grid);
+            var gridPair = GridPair.For(GridOperations.ParseGrid(map));
+            GridOperations.CalculateCloseness(gridPair);
+            GridCell[,] grid = gridPair.Primary;
 
             Assert.AreEqual(0, grid[2, 5].GoblinId, "Test setup error");
 
@@ -56,8 +57,9 @@ namespace Tests
 #...G.#
 #######";
 
-            GridCell[,] grid = GridOperations.ParseGrid(map);
-            grid = GridOperations.CalculateCloseness(grid);
+            var gridPair = GridPair.For(GridOperations.ParseGrid(map));
+            GridOperations.CalculateCloseness(gridPair);
+            GridCell[,] grid = gridPair.Primary;
 
             var p = GridOperations.CalculateMove(grid, 2, 1);
             Assert.AreEqual((1, 0), p);

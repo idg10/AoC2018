@@ -129,8 +129,8 @@ namespace Day15
         private static void Main()
         {
             string map = InputReader.ReadAll(typeof(Program));
-            //(int part1, _) = SolvePart1(map, show: true);
-            //Console.WriteLine("Part 1: " + part1);
+            (int part1, _) = SolvePart1(map, show: true);
+            Console.WriteLine("Part 1: " + part1);
 
             Console.WriteLine(SolvePart2(map));
         }

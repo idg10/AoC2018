@@ -10,16 +10,17 @@ namespace Day15
             GridCell[,] grid,
             int elfAttackPower = 3)
         {
-            var gridWithCloseness = GridOperations.CalculateCloseness(grid);
+            var gridPair = GridPair.For(grid);
+            GridOperations.CalculateCloseness(gridPair);
             var elfHitPoints = ImmutableDictionary<int, int>.Empty;
             var goblinHitPoints = ImmutableDictionary<int, int>.Empty;
-            int height = gridWithCloseness.GetLength(0);
-            int width = gridWithCloseness.GetLength(1);
+            int height = gridPair.Primary.GetLength(0);
+            int width = gridPair.Primary.GetLength(1);
             for (int y = 0; y < height; ++y)
             {
                 for (int x = 0; x < width; ++x)
                 {
-                    GridCell cell = gridWithCloseness[y, x];
+                    GridCell cell = gridPair.Primary[y, x];
                     if (cell.IsElf)
                     {
                         elfHitPoints = elfHitPoints.Add(cell.ElfId.Value, 200);
@@ -31,22 +32,24 @@ namespace Day15
                 }
             }
 
-            return new GameState(gridWithCloseness, elfHitPoints, goblinHitPoints, elfAttackPower);
+            return new GameState(gridPair, elfHitPoints, goblinHitPoints, elfAttackPower);
         }
 
+        private readonly GridPair _gridPair;
+
         private GameState(
-            GridCell[,] gridWithCloseness,
+            GridPair gridPair,
             IImmutableDictionary<int, int> elfHitPoints,
             IImmutableDictionary<int, int> goblinHitPoints,
             int elfAttackPower)
         {
-            Grid = gridWithCloseness;
             ElfHitPoints = elfHitPoints;
             GoblinHitPoints = goblinHitPoints;
             ElfAttackPower = elfAttackPower;
+            _gridPair = gridPair;
         }
 
-        public GridCell[,] Grid { get; }
+        public GridCell[,] Grid => _gridPair.Primary;
         public IImmutableDictionary<int, int> ElfHitPoints { get; }
         public IImmutableDictionary<int, int> GoblinHitPoints { get; }
         public int ElfAttackPower { get; }
@@ -108,7 +111,7 @@ namespace Day15
                     grid[newCoordinates.y, newCoordinates.x] = isElf
                         ? GridCell.Elf(unitId)
                         : GridCell.Goblin(unitId);
-                    grid = GridOperations.CalculateCloseness(grid);
+                    GridOperations.CalculateCloseness(_gridPair);
                     coordinates[i] = newCoordinates;
                 }
 
@@ -151,12 +154,12 @@ namespace Day15
                     if (hitPoints <= 0)
                     {
                         RemoveItem(height, width, grid, (match.Value.x, match.Value.y));
-                        grid = GridOperations.CalculateCloseness(grid);
+                        GridOperations.CalculateCloseness(_gridPair);
                     }
                 }
             }
 
-            return (new GameState(grid, elfHitPoints, goblinHitPoints, ElfAttackPower), combatEnds);
+            return (new GameState(_gridPair, elfHitPoints, goblinHitPoints, ElfAttackPower), combatEnds);
         }
 
         private static void RemoveItem(int height, int width, GridCell[,] grid, (int x, int y) xy)

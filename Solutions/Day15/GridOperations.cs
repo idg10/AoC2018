@@ -82,24 +82,14 @@ namespace Day15
         /// The grid, populated with closeness information. NOTE: this might be the same grid as was
         /// passed in - this method can operates in situ.
         /// </returns>
-        public static GridCell[,] CalculateCloseness(GridCell[,] grid)
+        public static void CalculateCloseness(GridPair gridPair)
         {
-
-            // Alternate between two grids to reduce the number of allocations.
-            int height = grid.GetLength(0);
-            int width = grid.GetLength(1);
-            GridCell[,] grid2 = grid;
-            grid = new GridCell[height, width];
             bool workToDo;
             do
             {
-                GridCell[,] temp = grid2;
-                grid2 = grid;
-                grid = temp;
-                workToDo = ProcessOneClosenessStep(grid, grid2);
+                workToDo = ProcessOneClosenessStep(gridPair.Primary, gridPair.Secondary);
+                gridPair = gridPair.Swap();
             } while (workToDo);
-
-            return grid;
         }
 
         private static bool ProcessOneClosenessStep(
@@ -269,23 +259,88 @@ namespace Day15
             Func<GridCell, (int x, int y), (int x, int y)> positionOrderSelector1,
             Func<GridCell, (int x, int y), (int x, int y)> positionOrderSelector2 = null)
         {
-            positionOrderSelector2 = positionOrderSelector2 ?? ((_, __) => (1, 1));
-            (int x, int y)[] neighbourCoordinates =
+            // Our implementation used to look like this:
+
+            //positionOrderSelector2 = positionOrderSelector2 ?? ((_, __) => (1, 1));
+            //(int x, int y)[] neighbourCoordinates =
+            //{
+            //    (x - 1, y),
+            //    (x + 1, y),
+            //    (x, y - 1),
+            //    (x, y + 1)
+            //};
+            //return
+            //    (from coords in neighbourCoordinates
+            //     let c = grid[coords.y, coords.x]
+            //     where rankSelector(c).HasValue
+            //     let irp = positionOrderSelector1(c, coords)
+            //     let xy2 = positionOrderSelector2(c, coords)
+            //     orderby rankSelector(c), irp.y, irp.x, xy2.y, xy2.x
+            //     select ((GridCell, int x, int y)?)(c, coords.x, coords.y))
+            //    .FirstOrDefault();
+            
+            // However, it turns out that this function is a hotspot - it's essentially
+            // the inner loop for most of the work we do. The problem with that LINQ
+            // query is that it's quite allocatey. Not only is that expensive, it also
+            // tends to defeat concurrency: we were spending so much time in GC that
+            // about half of each CPU core's time was spent sitting and waiting for
+            // a GC to finish, meaning that we didn't really get as much of a boost
+            // from parallelism as we would hope.
+            // Since we're only looking for the best option out of 4, LINQ is a bit of
+            // a sledgehammer to crack a nut. So instead we're going old-school. the
+            // principal benefit of this is that this should be a zero-allocation bit
+            // of code. That will improve the per-thread speed significantly, but will
+            // also remove the barriers to effective exploitation of parallelism.
+            // Also, we get to take advantage of the fact that for small collections,
+            // a simple linear scan is almost always faster than doing something more
+            // clever that is works well for large collections.
+
+            GridCell best = default;
+            (int x, int y) bestXy = default;
+            bool foundOne = false;
+            int bestRank = int.MaxValue;
+            int bestP1y = int.MaxValue;
+            int bestP1x = int.MaxValue;
+            int bestP2y = int.MaxValue;
+            int bestP2x = int.MaxValue;
+            for (int i = 0; i < 4; ++i)
             {
-                (x - 1, y),
-                (x + 1, y),
-                (x, y - 1),
-                (x, y + 1)
-            };
-            return
-                (from coords in neighbourCoordinates
-                 let c = grid[coords.y, coords.x]
-                 where rankSelector(c).HasValue
-                 let irp = positionOrderSelector1(c, coords)
-                 let xy2 = positionOrderSelector2(c, coords)
-                 orderby rankSelector(c), irp.y, irp.x, xy2.y, xy2.x
-                 select ((GridCell, int x, int y)?)(c, coords.x, coords.y))
-                .FirstOrDefault();
+                (int x, int y) xy;
+                switch (i)
+                {
+                    case 0: xy = (x - 1, y); break;
+                    case 1: xy = (x + 1, y); break;
+                    case 2: xy = (x, y - 1); break;
+                    case 3: xy = (x, y + 1); break;
+                    default: throw new InvalidOperationException();
+                }
+                GridCell cell = grid[xy.y, xy.x];
+                int? rank = rankSelector(cell);
+                if (rank.HasValue)
+                {
+                    (int p1x, int p1y) = positionOrderSelector1(cell, xy);
+                    (int p2x, int p2y) = positionOrderSelector2 == null
+                        ? (0, 0)
+                        : positionOrderSelector2(cell, xy);
+                    bool isBest = (rank.Value < bestRank) || (rank.Value == bestRank
+                        && ((p1y < bestP1y) || (p1y == bestP1y
+                        && ((p1x < bestP1x) || (p1x == bestP1x
+                        && (p2y < bestP2y || (p2y == bestP2y && (p2x < bestP2x))))))));
+                    if (isBest)
+                    {
+                        foundOne = true;
+                        best = cell;
+                        bestXy = xy;
+                        bestRank = rank.Value;
+                        bestP1x = p1x;
+                        bestP1y = p1y;
+                        bestP2x = p2x;
+                        bestP2y = p2y;
+                    }
+                }
+            }
+
+            return foundOne ? (best, bestXy.x, bestXy.y) : default((GridCell cell, int x, int y)?);
         }
     }
 }
