@@ -129,16 +129,19 @@ namespace Day15
         private static void Main()
         {
             string map = InputReader.ReadAll(typeof(Program));
-            int part1 = SolvePart1(map, show: true);
-            Console.WriteLine("Part 1: " + part1);
+            //(int part1, _) = SolvePart1(map, show: true);
+            //Console.WriteLine("Part 1: " + part1);
+
+            Console.WriteLine(SolvePart2(map));
         }
 
-        public static int SolvePart1(string map, bool show = false)
+        public static (int score, bool totalElfVictory) SolvePart1(string map, bool show = false, int elfAttackPower = 3)
         {
             int rounds = 0;
             GameState g;
             int startLine = Console.CursorTop;
-            for (g = GameState.Start(GridOperations.ParseGrid(map)); g.IsNotOver; g = g.PlayRound())
+            bool combatEnds = false;
+            for (g = GameState.Start(GridOperations.ParseGrid(map), elfAttackPower); !combatEnds; (g, combatEnds) = g.PlayRound())
             {
                 rounds += 1;
                 if (show)
@@ -153,7 +156,37 @@ namespace Day15
                 .Select(kv => kv.Value)
                 .Where(p => p > 0)
                 .Sum();
-            return winningTeamHitPointsRemaining * (rounds - 1);
+            return (winningTeamHitPointsRemaining * (rounds - 1), g.ElfHitPoints.All(kv => kv.Value > 0));
+        }
+
+        public static (int power, int outcome) SolvePart2(string map)
+        {
+            // We're searching for the lowest power that enables total elf victory, but since
+            // there's no guarantee that all powers above that lowest power will also achieve
+            // victory, we cant just do a binary search. (Actually, it happens to work for my
+            // input, but it's not guaranteed.)
+            // So we just have to try each number. To make it run a bit faster, we're going to
+            // execute in parallel.
+            var sync = new object();
+            bool run = true;
+            var x = EnumerableEx.Generate(4, _ => { lock (sync) { return run; } }, i => i + 1, i => i)
+                .AsParallel()
+                .Select(i =>
+                {
+                    Console.WriteLine("Trying " + i);
+                    var r = (power: i, r: SolvePart1(map, elfAttackPower: i));
+                    if (r.r.totalElfVictory)
+                    {
+                        lock (sync)
+                        {
+                            run = false;
+                        }
+                    }
+                    Console.WriteLine(r);
+                    return r;
+                })
+                .First(xx => xx.r.totalElfVictory);
+            return (x.power, x.r.score);
         }
 
         public static void ShowGrid(GridCell[,] grid)

@@ -7,7 +7,8 @@ namespace Day15
     public sealed class GameState
     {
         public static GameState Start(
-            GridCell[,] grid)
+            GridCell[,] grid,
+            int elfAttackPower = 3)
         {
             var gridWithCloseness = GridOperations.CalculateCloseness(grid);
             var elfHitPoints = ImmutableDictionary<int, int>.Empty;
@@ -30,27 +31,30 @@ namespace Day15
                 }
             }
 
-            return new GameState(gridWithCloseness, elfHitPoints, goblinHitPoints);
+            return new GameState(gridWithCloseness, elfHitPoints, goblinHitPoints, elfAttackPower);
         }
 
         private GameState(
             GridCell[,] gridWithCloseness,
             IImmutableDictionary<int, int> elfHitPoints,
-            IImmutableDictionary<int, int> goblinHitPoints)
+            IImmutableDictionary<int, int> goblinHitPoints,
+            int elfAttackPower)
         {
             Grid = gridWithCloseness;
             ElfHitPoints = elfHitPoints;
             GoblinHitPoints = goblinHitPoints;
+            ElfAttackPower = elfAttackPower;
         }
-
-        public bool IsNotOver => ElfHitPoints.Any(kv => kv.Value > 0) && GoblinHitPoints.Any(kv => kv.Value > 0);
 
         public GridCell[,] Grid { get; }
         public IImmutableDictionary<int, int> ElfHitPoints { get; }
         public IImmutableDictionary<int, int> GoblinHitPoints { get; }
+        public int ElfAttackPower { get; }
 
-        public GameState PlayRound()
+        public (GameState state, bool combatEnds) PlayRound()
         {
+            bool combatEnds = false;
+
             var coordinates = new List<(int x, int y)>();
             int height = Grid.GetLength(0);
             int width = Grid.GetLength(1);
@@ -78,6 +82,13 @@ namespace Day15
                 {
                     // Already taken out in an earlier turn this round.
                     continue;
+                }
+
+                if ((unitCell.IsElf && !goblinHitPoints.Any(kv => kv.Value > 0))
+                    || (unitCell.IsGoblin && !elfHitPoints.Any(kv => kv.Value > 0)))
+                {
+                    combatEnds = true;
+                    break;
                 }
 
                 int hitPower = unitCell.IsElf
@@ -114,7 +125,7 @@ namespace Day15
                             ? NullIfDead(unitCell.IsElf ? goblinHitPoints[c.GoblinId.Value] : elfHitPoints[c.ElfId.Value])
                             : default;
 
-                        int? NullIfDead(int v) => v >= 0 ? v : default;
+                        int? NullIfDead(int v) => v > 0 ? v : default;
                     },
                     (_, loc) => loc);
                 if (match.HasValue)
@@ -123,7 +134,7 @@ namespace Day15
                     if (unitCell.IsElf)
                     {
                         int goblinId = match.Value.cell.GoblinId.Value;
-                        hitPoints = goblinHitPoints[goblinId] - 3;
+                        hitPoints = goblinHitPoints[goblinId] - ElfAttackPower;
                         goblinHitPoints = goblinHitPoints.SetItem(
                             goblinId,
                             hitPoints);
@@ -140,13 +151,12 @@ namespace Day15
                     if (hitPoints <= 0)
                     {
                         RemoveItem(height, width, grid, (match.Value.x, match.Value.y));
-
                         grid = GridOperations.CalculateCloseness(grid);
                     }
                 }
             }
 
-            return new GameState(grid, elfHitPoints, goblinHitPoints);
+            return (new GameState(grid, elfHitPoints, goblinHitPoints, ElfAttackPower), combatEnds);
         }
 
         private static void RemoveItem(int height, int width, GridCell[,] grid, (int x, int y) xy)

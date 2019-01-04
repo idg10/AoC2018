@@ -90,7 +90,7 @@ namespace Tests
             IsGoblin(7, grid, 7, 7);
             IsElf(0, grid, 4, 4);
 
-            gameState = gameState.PlayRound();
+            gameState = gameState.PlayRound().state;
             grid = gameState.Grid;
 
             IsGoblin(0, grid, 2, 1);
@@ -103,7 +103,7 @@ namespace Tests
             IsGoblin(7, grid, 7, 6);
             IsElf(0, grid, 4, 3);
 
-            gameState = gameState.PlayRound();
+            gameState = gameState.PlayRound().state;
             grid = gameState.Grid;
 
             IsGoblin(0, grid, 3, 1);
@@ -116,7 +116,7 @@ namespace Tests
             IsGoblin(7, grid, 7, 5);
             IsElf(0, grid, 4, 3);
 
-            gameState = gameState.PlayRound();
+            gameState = gameState.PlayRound().state;
             grid = gameState.Grid;
 
             IsGoblin(0, grid, 3, 2);
@@ -129,7 +129,7 @@ namespace Tests
             IsGoblin(7, grid, 7, 5);
             IsElf(0, grid, 4, 3);
 
-            gameState = gameState.PlayRound();
+            gameState = gameState.PlayRound().state;
             grid = gameState.Grid;
 
             IsGoblin(0, grid, 3, 2);
@@ -164,7 +164,7 @@ namespace Tests
             Assert.AreEqual(200, state.ElfHitPoints[1]);
 
             // Round 1
-            state = state.PlayRound();
+            state = state.PlayRound().state;
             var grid = state.Grid;
 
             IsGoblin(0, grid, 3, 1);
@@ -181,7 +181,7 @@ namespace Tests
             Assert.AreEqual(197, state.ElfHitPoints[1]);
 
             // Round 2
-            state = state.PlayRound();
+            state = state.PlayRound().state;
             grid = state.Grid;
 
             IsGoblin(0, grid, 4, 1);
@@ -199,7 +199,7 @@ namespace Tests
 
             for (int i = 0; i < 21; ++i)
             {
-                state = state.PlayRound();
+                state = state.PlayRound().state;
                 grid = state.Grid;
 
                 IsGoblin(0, grid, 4, 1);
@@ -224,7 +224,7 @@ namespace Tests
             Assert.AreEqual(131, state.ElfHitPoints[1]);
 
             // Round 24
-            state = state.PlayRound();
+            state = state.PlayRound().state;
             grid = state.Grid;
 
             IsGoblin(0, grid, 3, 1);
@@ -239,7 +239,7 @@ namespace Tests
             Assert.AreEqual(128, state.ElfHitPoints[1]);
 
             // Round 25
-            state = state.PlayRound();
+            state = state.PlayRound().state;
             grid = state.Grid;
 
             IsGoblin(0, grid, 2, 1);
@@ -254,7 +254,7 @@ namespace Tests
             Assert.AreEqual(125, state.ElfHitPoints[1]);
 
             // Round 26
-            state = state.PlayRound();
+            state = state.PlayRound().state;
             grid = state.Grid;
 
             IsGoblin(0, grid, 1, 1);
@@ -269,7 +269,7 @@ namespace Tests
             Assert.AreEqual(122, state.ElfHitPoints[1]);
 
             // Round 27
-            state = state.PlayRound();
+            state = state.PlayRound().state;
             grid = state.Grid;
 
             IsGoblin(0, grid, 1, 1);
@@ -284,7 +284,7 @@ namespace Tests
             Assert.AreEqual(119, state.ElfHitPoints[1]);
 
             // Round 28
-            state = state.PlayRound();
+            state = state.PlayRound().state;
             grid = state.Grid;
 
             IsGoblin(0, grid, 1, 1);
@@ -301,7 +301,7 @@ namespace Tests
             // Round 29-47
             for (int i = 0; i < 19; ++i)
             {
-                state = state.PlayRound();
+                state = state.PlayRound().state;
                 grid = state.Grid;
 
                 IsGoblin(0, grid, 1, 1);
@@ -335,7 +335,7 @@ namespace Tests
 #...#E#
 #...E.#
 #######";
-            Assert.AreEqual(36334, Program.SolvePart1(map));
+            Assert.AreEqual(36334, Program.SolvePart1(map).score);
         }
 
         [TestMethod]
@@ -349,7 +349,7 @@ namespace Tests
 #G..#.#
 #..E#.#
 #######";
-            Assert.AreEqual(39514, Program.SolvePart1(map));
+            Assert.AreEqual(39514, Program.SolvePart1(map).score);
         }
 
         [TestMethod]
@@ -363,7 +363,7 @@ namespace Tests
 #G..#.#
 #...E.#
 #######";
-            Assert.AreEqual(27755, Program.SolvePart1(map));
+            Assert.AreEqual(27755, Program.SolvePart1(map).score);
         }
 
         [TestMethod]
@@ -377,7 +377,7 @@ namespace Tests
 #E#G#G#
 #...#G#
 #######";
-            Assert.AreEqual(28944, Program.SolvePart1(map));
+            Assert.AreEqual(28944, Program.SolvePart1(map).score);
         }
 
         [TestMethod]
@@ -393,7 +393,81 @@ namespace Tests
 #.G...G.#
 #.....G.#
 #########";
-            Assert.AreEqual(18740, Program.SolvePart1(map));
+            Assert.AreEqual(18740, Program.SolvePart1(map).score);
+        }
+
+        [TestMethod]
+        public void Part2Example1()
+        {
+            const string map =
+@"#######
+#.G...#
+#...EG#
+#.#.#G#
+#..G#E#
+#.....#
+#######";
+            Assert.AreEqual((15, 4988), Program.SolvePart2(map));
+        }
+
+        [TestMethod]
+        public void Part2Example2()
+        {
+            const string map =
+@"#######
+#E..EG#
+#.#G.E#
+#E.##E#
+#G..#.#
+#..E#.#
+#######";
+            Assert.AreEqual(31284, Program.SolvePart1(map, elfAttackPower:4).score);
+            Assert.AreEqual((4, 31284), Program.SolvePart2(map));
+        }
+
+        [TestMethod]
+        public void Part2Example3()
+        {
+            const string map =
+@"#######
+#E.G#.#
+#.#G..#
+#G.#.G#
+#G..#.#
+#...E.#
+#######";
+            Assert.AreEqual(3478, Program.SolvePart1(map, elfAttackPower: 15).score);
+            Assert.AreEqual((15, 3478), Program.SolvePart2(map));
+        }
+
+        [TestMethod]
+        public void Part2Example4()
+        {
+            const string map =
+@"#######
+#.E...#
+#.#..G#
+#.###.#
+#E#G#G#
+#...#G#
+#######";
+            Assert.AreEqual((12, 6474), Program.SolvePart2(map));
+        }
+
+        [TestMethod]
+        public void Part2Example5()
+        {
+            const string map =
+@"#########
+#G......#
+#.E.#...#
+#..##..G#
+#...##..#
+#...#...#
+#.G...G.#
+#.....G.#
+#########";
+            Assert.AreEqual((34, 1140), Program.SolvePart2(map));
         }
 
         private void IsGoblin(int id, GridCell[,] grid, int x, int y)

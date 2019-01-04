@@ -79,26 +79,36 @@ namespace Day15
         /// A grid array, which must not yet have any closeness information in it.
         /// </param>
         /// <returns>
-        /// The grid, populated with closeness information. NOTE: this is the same grid as was
-        /// passed in - this method operates in situ.
+        /// The grid, populated with closeness information. NOTE: this might be the same grid as was
+        /// passed in - this method can operates in situ.
         /// </returns>
         public static GridCell[,] CalculateCloseness(GridCell[,] grid)
         {
+
+            // Alternate between two grids to reduce the number of allocations.
+            int height = grid.GetLength(0);
+            int width = grid.GetLength(1);
+            GridCell[,] grid2 = grid;
+            grid = new GridCell[height, width];
             bool workToDo;
             do
             {
-                (grid, workToDo) = ProcessOneClosenessStep(grid);
+                GridCell[,] temp = grid2;
+                grid2 = grid;
+                grid = temp;
+                workToDo = ProcessOneClosenessStep(grid, grid2);
             } while (workToDo);
 
             return grid;
         }
 
-        private static (GridCell[,] grid, bool changed) ProcessOneClosenessStep(GridCell[,] lastGrid)
+        private static bool ProcessOneClosenessStep(
+            GridCell[,] lastGrid,
+            GridCell[,] newGrid)
         {
             bool changed = false;
             int height = lastGrid.GetLength(0);
             int width = lastGrid.GetLength(1);
-            GridCell[,] newGrid = new GridCell[height, width];
             for (int y = 0; y < height; ++y)
             {
                 for (int x = 0; x < width; ++x)
@@ -186,7 +196,7 @@ namespace Day15
                 }
             }
 
-            return (newGrid, changed);
+            return changed;
         }
 
         /// <summary>
