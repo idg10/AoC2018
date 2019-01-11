@@ -4,6 +4,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <NoWarn>RCS1089</NoWarn>
+    <NoWarn>RCS1089;RCS1029</NoWarn>
   </PropertyGroup>
 </Project>

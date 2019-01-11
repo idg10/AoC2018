@@ -18,6 +18,14 @@ namespace Common
         public static readonly Parser<int> pInt32 = lexer.Integer;
 
         /// <summary>
+        /// Parse a decimal into a 32-bit integer.
+        /// </summary>
+        public static readonly Parser<byte> pByte =
+            from i in pInt32
+            where i >= 0 && i <= 255
+            select (byte) i;
+
+        /// <summary>
         /// Parse a comma-separated pair of integers.
         /// </summary>
         public static readonly Parser<(int x, int y)> pInt32CommaInt32 = Sep2By(pInt32, Trim(ch(',')));
