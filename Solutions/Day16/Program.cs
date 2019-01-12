@@ -45,10 +45,18 @@ namespace Day16
 
         private static void Main()
         {
-            string[] input = InputReader.ReadAll(typeof(Program)).Split("\r\n\r\n\r\n");
+            string[] input = InputReader.ReadAll(typeof(Program)).Replace("\r", "").Split("\n\n\n");
             Sample[] samples = ProcessLine(pSamples, input[0]);
             int part1 = SolvePart1(samples);
             Console.WriteLine("Part 1: " + part1);
+
+            //, 
+            byte[][] instructions = InputReader.ParseLines(
+                input[1].Trim('\n').Split('\n', StringSplitOptions.RemoveEmptyEntries),
+                pInstruction)
+                .ToArray();
+            int part2 = SolvePart2(samples, instructions);
+            Console.WriteLine("Part 2: " + part2);
         }
 
         public static int SolvePart1(IEnumerable<Sample> samples)
@@ -64,6 +72,72 @@ namespace Day16
             }
 
             return count;
+        }
+
+        public static int SolvePart2(
+            IEnumerable<Sample> samples,
+            IEnumerable<byte[]> instructions)
+        {
+            IReadOnlyDictionary<byte, string> opcodeMap = BuildOpcodeMap(samples);
+
+            Registers r = default;
+
+            foreach (byte[] instruction in instructions)
+            {
+                string operationName = opcodeMap[instruction[0]];
+                Opcode op = Opcode.Opcodes[operationName](instruction[1], instruction[2], instruction[3]);
+                r = op.Execute(r);
+            }
+
+            return r.R0;
+        }
+
+        public static IReadOnlyDictionary<byte, string> BuildOpcodeMap(IEnumerable<Sample> samples)
+        {
+            var opcodeCandidates = Enumerable
+                .Range(0, 16)
+                .ToDictionary(
+                    i => (byte)i,
+                    _ => ImmutableHashSet.CreateRange(Opcode.Opcodes.Keys));
+
+            foreach (Sample sample in samples)
+            {
+                ISet<string> possibles = PossibleOpcodes(sample);
+                byte opcode = sample.Opcode;
+                var candidates = opcodeCandidates[opcode];
+                opcodeCandidates[opcode] = candidates.Intersect(possibles);
+            }
+
+            bool changed;
+            do
+            {
+                changed = false;
+                var resolvedOpcodes = opcodeCandidates
+                    .Where(kv => kv.Value.Count == 1)
+                    .Select(kv => (kv.Key, kv.Value.Single()))
+                    .ToList();
+                foreach ((byte opcode, string opName) in resolvedOpcodes)
+                {
+                    // This opcode has only only candidate operation, meaning this has to
+                    // be the opcode for that operation.
+                    // We can therefore remove this operation from all other opcode candidate
+                    // lists.
+                    foreach ((var k, var candidates) in opcodeCandidates.Where(kv => kv.Key != opcode).ToList())
+                    {
+                        var candidatesWithoutResolvedOpcode = candidates.Remove(opName);
+                        if (candidatesWithoutResolvedOpcode != candidates)
+                        {
+                            changed = true;
+                            opcodeCandidates[k] = candidatesWithoutResolvedOpcode;
+                        }
+                    }
+                }
+            } while (changed);
+
+            return opcodeCandidates
+                .ToDictionary(
+                    kv => kv.Key,
+                    kv => kv.Value.Single());
         }
 
         public static ISet<string> PossibleOpcodes(Sample s)
